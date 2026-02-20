@@ -1,0 +1,17 @@
+[languages]
+default = "en"
+supported = ["en", "zh"]
+timezone = "+08:00"
+
+[auth]
+default = "admin"
+
+[auth.guards.admin]
+provider = "admin"
+ttl_min = 120
+refresh_ttl_days = 30
+
+[realtime.channels.public]
+enabled = true
+guard = ""
+presence_enabled = false

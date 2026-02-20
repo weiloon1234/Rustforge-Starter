@@ -1,0 +1,10 @@
+target/
+**/target/
+.env
+.DS_Store
+*.log
+*.tmp
+
+# Keep the directory, ignore generated static files by default.
+public/*
+!public/.gitkeep

@@ -1,0 +1,22 @@
+[AdminType]
+type = "enum"
+storage = "string"
+variants = ["Developer", "SuperAdmin", "Admin"]
+
+auth = true
+auth_model = "admin"
+
+[model.admin]
+table = "admin"
+pk = "id"
+pk_type = "uuid"
+id_strategy = "manual"
+fields = [
+  "id:uuid",
+  "email:string",
+  "password:hashed",
+  "name:string",
+  "admin_type:AdminType",
+  "created_at:datetime",
+  "updated_at:datetime"
+]

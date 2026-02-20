@@ -1,0 +1,10 @@
+# Permission catalog (single source of truth).
+# Keep empty if your project does not need permissions yet.
+#
+# Example:
+# [[permissions]]
+# key = "article.manage"
+# guard = "admin"
+# label = "Manage Articles"
+# group = "article"
+# description = "Create/update/delete article resources."
