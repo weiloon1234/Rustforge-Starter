@@ -12,6 +12,7 @@ help:
 	@echo "  make route-list"
 	@echo "  make migrate-pump"
 	@echo "  make migrate-run"
+	@echo "  make server-install"
 	@echo "  make assets-publish ASSETS_ARGS='--from frontend/dist --clean'"
 	@echo "  make framework-docs-build"
 	@echo "  make check"
@@ -44,6 +45,10 @@ migrate-pump:
 .PHONY: migrate-run
 migrate-run:
 	./bin/console migrate run
+
+.PHONY: server-install
+server-install:
+	sudo ./scripts/install-ubuntu.sh
 
 .PHONY: assets-publish
 assets-publish:

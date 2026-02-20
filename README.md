@@ -59,6 +59,25 @@ make assets-publish ASSETS_ARGS="--from frontend/dist --clean"
 make framework-docs-build
 ```
 
+## Ubuntu Server Install (Interactive)
+
+Run as root on Ubuntu 24/25:
+
+```bash
+sudo ./scripts/install-ubuntu.sh
+# or
+make server-install
+```
+
+The installer is idempotent (safe to run multiple times) and will:
+- create/reuse an isolated Linux user per project
+- configure SSH access (copy root key, manual key, or generated password)
+- recursively `chown` project files to the isolated user
+- upsert `.env` values (domain/env/db/redis/ports)
+- generate/update nginx site config
+- optionally configure Supervisor programs
+- optionally issue/renew Let's Encrypt certificates with cron renewal
+
 ## Static Assets (Optional)
 
 1. Keep `PUBLIC_PATH=public` (or set your own path in `.env`).
