@@ -29,7 +29,7 @@ fn main() {
     if !guards_out.exists() {
         std::fs::create_dir_all(&guards_out).expect("Failed to create guards out");
     }
-    db_gen::generate_auth(&cfgs, &guards_out).expect("Failed to gen auth");
+    db_gen::generate_auth(&cfgs, &schema, &guards_out).expect("Failed to gen auth");
     db_gen::generate_permissions(&permissions, &out_dir.join("permissions.rs"))
         .expect("Failed to gen permissions");
 

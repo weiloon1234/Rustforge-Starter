@@ -14,33 +14,52 @@ pub struct PermissionMeta {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, JsonSchema)]
 pub enum Permission {
+    #[serde(rename = "admin.read")]
+    AdminRead,
+    #[serde(rename = "admin.manage")]
+    AdminManage,
 }
 
 pub const PERMISSION_META: &[PermissionMeta] = &[
+    PermissionMeta { key: "admin.read", guard: "admin", label: "Read Admins", group: "admin", description: "View admin profile and datatable records." },
+    PermissionMeta { key: "admin.manage", guard: "admin", label: "Manage Admins", group: "admin", description: "Create/update/delete admin records and perform management actions." },
 ];
 
 impl Permission {
     pub const fn as_str(self) -> &'static str {
-        match self {}
+        match self {
+            Self::AdminRead => "admin.read",
+            Self::AdminManage => "admin.manage",
+        }
     }
 
     pub fn from_str(value: &str) -> Option<Self> {
         match value {
+            "admin.read" => Some(Self::AdminRead),
+            "admin.manage" => Some(Self::AdminManage),
             _ => None,
         }
     }
 
     pub const fn all() -> &'static [Self] {
         &[
+            Self::AdminRead,
+            Self::AdminManage,
         ]
     }
 
     pub const fn guard(self) -> &'static str {
-        match self {}
+        match self {
+            Self::AdminRead => "admin",
+            Self::AdminManage => "admin",
+        }
     }
 
     pub const fn meta(self) -> &'static PermissionMeta {
-        match self {}
+        match self {
+            Self::AdminRead => &PERMISSION_META[0],
+            Self::AdminManage => &PERMISSION_META[1],
+        }
     }
 
     pub fn by_guard(guard: &str) -> Vec<Self> {

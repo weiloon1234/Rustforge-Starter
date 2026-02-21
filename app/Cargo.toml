@@ -28,3 +28,5 @@ schemars = { workspace = true }
 async-trait = { workspace = true }
 clap = { workspace = true }
 uuid = { workspace = true }
+time = { workspace = true }
+tower-cookies = { workspace = true }

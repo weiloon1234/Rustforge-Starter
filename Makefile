@@ -24,6 +24,7 @@ help:
 	@echo "  make migrate-pump"
 	@echo "  make migrate-run"
 	@echo "  make server-install"
+	@echo "  make server-update"
 	@echo "  make assets-publish ASSETS_ARGS='--from frontend/dist --clean'"
 	@echo "  make framework-docs-build"
 	@echo "  make check"
@@ -69,6 +70,10 @@ migrate-run:
 .PHONY: server-install
 server-install:
 	sudo ./scripts/install-ubuntu.sh
+
+.PHONY: server-update
+server-update:
+	./scripts/update.sh
 
 .PHONY: assets-publish
 assets-publish:

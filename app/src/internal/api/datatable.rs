@@ -2,12 +2,16 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use axum::http::HeaderMap;
-use core_datatable::{DataTableAsyncExportManager, DataTableContext, DataTableRegistry};
+use core_datatable::{DataTableActor, DataTableAsyncExportManager, DataTableContext, DataTableRegistry};
 use core_db::infra::storage::Storage;
 use core_web::datatable::{
     DataTableEmailExportManager, DataTableRouteOptions, DataTableRouteState,
 };
+use core_web::auth::Guard;
 use core_web::openapi::ApiRouter;
+use serde_json::Value;
+
+use generated::guards::AdminGuard;
 
 use crate::contracts::datatable::admin::admin::AdminAdminDataTableContract;
 use crate::internal::api::state::AppApiState;
@@ -50,12 +54,34 @@ impl DataTableRouteState for AppApiState {
     }
 
     async fn datatable_context(&self, headers: &HeaderMap) -> DataTableContext {
+        let actor = build_admin_actor(&self.db, headers).await;
         DataTableContext {
             default_per_page: self.datatable_default_per_page,
             app_timezone: self.app_timezone.clone(),
             user_timezone: core_web::utils::datatable::parse_timezone_from_headers(headers),
-            actor: None,
+            actor,
             unknown_filter_mode: self.datatable_unknown_filter_mode,
         }
     }
+}
+
+async fn build_admin_actor(db: &sqlx::PgPool, headers: &HeaderMap) -> Option<DataTableActor> {
+    let token = core_web::auth::extract_bearer_token(headers)?;
+    let auth = core_web::auth::authenticate_token::<AdminGuard>(db, &token)
+        .await
+        .ok()?;
+
+    let mut attributes = std::collections::BTreeMap::new();
+    attributes.insert(
+        "admin_type".to_string(),
+        Value::String(auth.user.admin_type.as_str().to_string()),
+    );
+
+    Some(DataTableActor {
+        id: auth.subject_id.clone(),
+        guard: Some(AdminGuard::name().to_string()),
+        roles: Vec::new(),
+        permissions: auth.abilities,
+        attributes,
+    })
 }

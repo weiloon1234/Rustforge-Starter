@@ -9,6 +9,7 @@ use core_web::datatable::DataTableEmailExportManager;
 #[derive(Clone)]
 pub struct AppApiState {
     pub db: sqlx::PgPool,
+    pub auth: core_config::AuthSettings,
     pub storage: Arc<dyn Storage>,
     pub mailer: Arc<core_mailer::Mailer>,
     pub datatable_registry: Arc<DataTableRegistry>,
@@ -25,7 +26,7 @@ impl AppApiState {
         let mut datatable_registry = DataTableRegistry::new();
         crate::internal::datatables::register_all_generated_datatables(&mut datatable_registry, &ctx.db);
         datatable_registry.register_as(
-            "admin.admin",
+            "admin.account",
             crate::internal::datatables::app_admin_datatable(ctx.db.clone()),
         );
 
@@ -35,6 +36,7 @@ impl AppApiState {
 
         Ok(Self {
             db: ctx.db.clone(),
+            auth: ctx.settings.auth.clone(),
             storage: ctx.storage.clone(),
             mailer: ctx.mailer.clone(),
             datatable_registry,

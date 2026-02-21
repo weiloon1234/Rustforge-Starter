@@ -1,14 +1,58 @@
-// App-level datatable hooks for Admin.
-// Generated once by db-gen; safe to edit.
-
-use core_datatable::DataTableRegistry;
-use generated::models::{AdminDataTable, AdminDataTableConfig, AdminDataTableHooks};
+use core_datatable::{DataTableContext, DataTableInput, DataTableRegistry};
+use core_db::common::sql::Op;
+use core_web::authz::{has_required_permissions, PermissionMode};
+use generated::{
+    models::{AdminDataTable, AdminDataTableConfig, AdminDataTableHooks, AdminQuery, AdminType},
+    permissions::Permission,
+};
 
 #[derive(Default, Clone)]
 pub struct AdminDataTableAppHooks;
 
 impl AdminDataTableHooks for AdminDataTableAppHooks {
-    // Override scope/authorize/filters/mappings when needed.
+    fn scope<'db>(
+        &'db self,
+        query: AdminQuery<'db>,
+        _input: &DataTableInput,
+        ctx: &DataTableContext,
+    ) -> AdminQuery<'db> {
+        let Some(actor) = ctx.actor.as_ref() else {
+            return query.where_id(Op::Eq, -1);
+        };
+
+        let admin_type = actor
+            .attributes
+            .get("admin_type")
+            .and_then(|value| value.as_str())
+            .and_then(parse_admin_type);
+
+        match admin_type {
+            Some(AdminType::Developer) => query,
+            Some(AdminType::SuperAdmin) => query.where_admin_type(Op::Ne, AdminType::Developer),
+            Some(AdminType::Admin) => query.where_admin_type(Op::Eq, AdminType::Admin),
+            None => query.where_id(Op::Eq, -1),
+        }
+    }
+
+    fn authorize(&self, _input: &DataTableInput, ctx: &DataTableContext) -> anyhow::Result<bool> {
+        let Some(actor) = ctx.actor.as_ref() else {
+            return Ok(false);
+        };
+        Ok(has_required_permissions(
+            &actor.permissions,
+            &[Permission::AdminRead.as_str(), Permission::AdminManage.as_str()],
+            PermissionMode::Any,
+        ))
+    }
+}
+
+fn parse_admin_type(value: &str) -> Option<AdminType> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "developer" => Some(AdminType::Developer),
+        "superadmin" => Some(AdminType::SuperAdmin),
+        "admin" => Some(AdminType::Admin),
+        _ => None,
+    }
 }
 
 pub type AppAdminDataTable = AdminDataTable<AdminDataTableAppHooks>;
@@ -21,7 +65,9 @@ pub fn app_admin_datatable_with_config(
     db: sqlx::PgPool,
     config: AdminDataTableConfig,
 ) -> AppAdminDataTable {
-    AdminDataTable::new(db).with_hooks(AdminDataTableAppHooks::default()).with_config(config)
+    AdminDataTable::new(db)
+        .with_hooks(AdminDataTableAppHooks::default())
+        .with_config(config)
 }
 
 pub fn register_admin_datatable(registry: &mut DataTableRegistry, db: sqlx::PgPool) {

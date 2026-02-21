@@ -12,6 +12,7 @@ use validator::Validate;
 
 #[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminDatatableQueryInput {
+    #[serde(default)]
     #[validate(nested)]
     pub base: DataTableQueryRequestBase,
     #[serde(default)]
@@ -19,19 +20,15 @@ pub struct AdminDatatableQueryInput {
     #[schemars(length(min = 1, max = 120))]
     pub q: Option<String>,
     #[serde(default)]
+    #[validate(length(min = 3, max = 64))]
+    #[schemars(length(min = 3, max = 64))]
+    pub username: Option<String>,
+    #[serde(default)]
     #[validate(length(min = 1, max = 120))]
     #[schemars(length(min = 1, max = 120))]
     pub email: Option<String>,
     #[serde(default)]
     pub admin_type: Option<AdminType>,
-    #[serde(default)]
-    #[validate(length(min = 1, max = 40))]
-    #[schemars(length(min = 1, max = 40))]
-    pub created_at_from: Option<String>,
-    #[serde(default)]
-    #[validate(length(min = 1, max = 40))]
-    #[schemars(length(min = 1, max = 40))]
-    pub created_at_to: Option<String>,
 }
 
 impl AdminDatatableQueryInput {
@@ -41,6 +38,17 @@ impl AdminDatatableQueryInput {
 
         if let Some(q) = self.q.as_deref().map(str::trim).filter(|v| !v.is_empty()) {
             params.insert("q".to_string(), q.to_string());
+        }
+        if let Some(username) = self
+            .username
+            .as_deref()
+            .map(str::trim)
+            .filter(|v| !v.is_empty())
+        {
+            params.insert(
+                "f-like-username".to_string(),
+                username.to_ascii_lowercase(),
+            );
         }
         if let Some(email) = self
             .email
@@ -52,22 +60,6 @@ impl AdminDatatableQueryInput {
         }
         if let Some(admin_type) = self.admin_type {
             params.insert("f-admin_type".to_string(), admin_type.as_str().to_string());
-        }
-        if let Some(from) = self
-            .created_at_from
-            .as_deref()
-            .map(str::trim)
-            .filter(|v| !v.is_empty())
-        {
-            params.insert("f-date-from-created_at".to_string(), from.to_string());
-        }
-        if let Some(to) = self
-            .created_at_to
-            .as_deref()
-            .map(str::trim)
-            .filter(|v| !v.is_empty())
-        {
-            params.insert("f-date-to-created_at".to_string(), to.to_string());
         }
 
         input.params.extend(params);
@@ -84,19 +76,15 @@ pub struct AdminDatatableEmailExportInput {
     #[schemars(length(min = 1, max = 120))]
     pub q: Option<String>,
     #[serde(default)]
+    #[validate(length(min = 3, max = 64))]
+    #[schemars(length(min = 3, max = 64))]
+    pub username: Option<String>,
+    #[serde(default)]
     #[validate(length(min = 1, max = 120))]
     #[schemars(length(min = 1, max = 120))]
     pub email: Option<String>,
     #[serde(default)]
     pub admin_type: Option<AdminType>,
-    #[serde(default)]
-    #[validate(length(min = 1, max = 40))]
-    #[schemars(length(min = 1, max = 40))]
-    pub created_at_from: Option<String>,
-    #[serde(default)]
-    #[validate(length(min = 1, max = 40))]
-    #[schemars(length(min = 1, max = 40))]
-    pub created_at_to: Option<String>,
 }
 
 impl AdminDatatableEmailExportInput {
@@ -106,6 +94,17 @@ impl AdminDatatableEmailExportInput {
 
         if let Some(q) = self.q.as_deref().map(str::trim).filter(|v| !v.is_empty()) {
             params.insert("q".to_string(), q.to_string());
+        }
+        if let Some(username) = self
+            .username
+            .as_deref()
+            .map(str::trim)
+            .filter(|v| !v.is_empty())
+        {
+            params.insert(
+                "f-like-username".to_string(),
+                username.to_ascii_lowercase(),
+            );
         }
         if let Some(email) = self
             .email
@@ -117,22 +116,6 @@ impl AdminDatatableEmailExportInput {
         }
         if let Some(admin_type) = self.admin_type {
             params.insert("f-admin_type".to_string(), admin_type.as_str().to_string());
-        }
-        if let Some(from) = self
-            .created_at_from
-            .as_deref()
-            .map(str::trim)
-            .filter(|v| !v.is_empty())
-        {
-            params.insert("f-date-from-created_at".to_string(), from.to_string());
-        }
-        if let Some(to) = self
-            .created_at_to
-            .as_deref()
-            .map(str::trim)
-            .filter(|v| !v.is_empty())
-        {
-            params.insert("f-date-to-created_at".to_string(), to.to_string());
         }
 
         input.params.extend(params);
@@ -150,7 +133,11 @@ impl DataTableScopedContract for AdminAdminDataTableContract {
     type Row = AdminView;
 
     fn scoped_key(&self) -> &'static str {
-        "admin.admin"
+        "admin.account"
+    }
+
+    fn openapi_tag(&self) -> &'static str {
+        "Admin Account"
     }
 
     fn query_to_input(&self, req: &Self::QueryRequest) -> DataTableInput {
@@ -185,7 +172,7 @@ impl DataTableScopedContract for AdminAdminDataTableContract {
                     filter_key: "q".to_string(),
                     field_type: DataTableFilterFieldType::Text,
                     label: "Keyword".to_string(),
-                    placeholder: Some("Search name/email".to_string()),
+                    placeholder: Some("Search name/username/email".to_string()),
                     description: None,
                     options: None,
                 },
@@ -199,6 +186,15 @@ impl DataTableScopedContract for AdminAdminDataTableContract {
                     options: None,
                 },
             ],
+            vec![DataTableFilterFieldDto {
+                field: "username".to_string(),
+                filter_key: "f-like-username".to_string(),
+                field_type: DataTableFilterFieldType::Text,
+                label: "Username".to_string(),
+                placeholder: Some("Contains".to_string()),
+                description: None,
+                options: None,
+            }],
             vec![DataTableFilterFieldDto {
                 field: "admin_type".to_string(),
                 filter_key: "f-admin_type".to_string(),

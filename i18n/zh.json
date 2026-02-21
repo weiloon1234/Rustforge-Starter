@@ -1,5 +1,23 @@
 {
+  "Admin list loaded": "管理员列表已加载",
+  "Admin loaded": "管理员资料已加载",
+  "Admin created": "管理员创建成功",
+  "Admin updated": "管理员更新成功",
+  "Admin deleted": "管理员删除成功",
+  "Username is already taken": "用户名已被使用",
+  "Cannot assign permissions you do not have": "不能分配你没有的权限",
+  "You cannot update your own admin account here": "不能在这里修改你自己的管理员账号",
+  "You cannot delete your own admin account here": "不能在这里删除你自己的管理员账号",
+  "Normal admin cannot assign admin.read or admin.manage": "普通管理员不能分配 admin.read 或 admin.manage",
+  "Profile loaded": "个人资料已加载",
+  "Login successful": "登录成功",
+  "Token refreshed": "令牌已刷新",
+  "Logout successful": "登出成功",
   "Profile updated successfully": "个人资料更新成功",
+  "Password updated successfully": "密码更新成功",
+  "Current password is incorrect": "当前密码不正确",
+  "Admin not found": "找不到管理员",
+  "Missing refresh token": "缺少刷新令牌",
   "Invalid credentials": "凭证无效",
   "Access denied": "拒绝访问"
 }

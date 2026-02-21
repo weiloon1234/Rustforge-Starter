@@ -1086,3 +1086,784 @@
 2026-02-21T11:51:25.848795Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
 2026-02-21T11:51:25.848814Z  INFO core_web::server: Listening on http://127.0.0.1:3000
 2026-02-21T11:52:25.846014Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 11:52:25.845858 UTC
+2026-02-21T11:53:25.847120Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 11:53:25.846959 UTC
+2026-02-21T11:54:09.980167Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T11:54:09.980842Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T11:54:10.098072Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T11:54:10.100759Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T11:54:10.100798Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T11:54:10.100861Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T11:54:10.101472Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T11:54:10.101494Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T11:54:10.104081Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T11:54:10.104169Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T11:54:10.104200Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T11:54:10.104243Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T11:54:10.104256Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T11:54:10.104262Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T11:54:10.104270Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T11:54:10.104293Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T11:54:10.104302Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T11:54:10.104309Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T11:54:10.104313Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T11:54:10.104340Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T11:54:10.104347Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T11:54:10.104352Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T11:54:10.104359Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T11:54:10.105112Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 11:54:10.105083 UTC
+2026-02-21T11:54:42.763254Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T11:54:42.763690Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T11:54:42.876088Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T11:54:42.879008Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T11:54:42.879046Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T11:54:42.879111Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T11:54:42.879760Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T11:54:42.879777Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T11:54:42.881058Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T11:54:42.881155Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T11:54:42.881185Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T11:54:42.881221Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T11:54:42.881249Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T11:54:42.881252Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T11:54:42.881256Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T11:54:42.881261Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T11:54:42.881264Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T11:54:42.881272Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T11:54:42.881295Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T11:54:42.881299Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T11:54:42.881314Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T11:54:42.881321Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T11:54:42.881314Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T11:54:42.882684Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 11:54:42.882660 UTC
+2026-02-21T11:54:45.064900Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T11:54:45.065395Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T11:54:45.184149Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T11:54:45.186934Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T11:54:45.186973Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T11:54:45.187037Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T11:54:45.187704Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T11:54:45.187725Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T11:54:45.190691Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T11:54:45.190778Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T11:54:45.190808Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T11:54:45.190855Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T11:54:45.190863Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T11:54:45.190871Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T11:54:45.190888Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T11:54:45.190903Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T11:54:45.190914Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T11:54:45.190921Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T11:54:45.190927Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T11:54:45.190933Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T11:54:45.190958Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T11:54:45.190980Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T11:54:45.190990Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T11:54:45.191830Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 11:54:45.191806 UTC
+2026-02-21T11:55:45.192257Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 11:55:45.192153 UTC
+2026-02-21T11:56:45.192668Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 11:56:45.192523 UTC
+2026-02-21T11:57:45.192834Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 11:57:45.192693 UTC
+2026-02-21T11:58:45.192882Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 11:58:45.192784 UTC
+2026-02-21T11:59:45.193074Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 11:59:45.192971 UTC
+2026-02-21T12:00:45.193014Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:00:45.192871 UTC
+2026-02-21T12:01:45.193244Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:01:45.193092 UTC
+2026-02-21T12:02:45.193902Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:02:45.193788 UTC
+2026-02-21T12:03:45.194557Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:03:45.194408 UTC
+2026-02-21T12:04:45.192988Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:04:45.192860 UTC
+2026-02-21T12:05:45.194093Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:05:45.193950 UTC
+2026-02-21T12:27:16.345757Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T12:27:16.346209Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T12:27:16.465073Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T12:27:16.467685Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T12:27:16.467724Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T12:27:16.467786Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T12:27:16.468388Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T12:27:16.468408Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T12:27:16.469349Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T12:27:16.469435Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T12:27:16.469466Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T12:27:16.469511Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T12:27:16.469514Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T12:27:16.469520Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T12:27:16.469533Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T12:27:16.469542Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T12:27:16.469568Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T12:27:16.469577Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T12:27:16.469578Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T12:27:16.469590Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T12:27:16.469603Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T12:27:16.469613Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T12:27:16.469622Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T12:27:16.470337Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:27:16.470316 UTC
+2026-02-21T12:31:14.046405Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T12:31:14.047089Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T12:31:14.170855Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T12:31:14.174048Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T12:31:14.174088Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T12:31:14.174135Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T12:31:14.174771Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T12:31:14.174792Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T12:31:14.177747Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T12:31:14.177865Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T12:31:14.177901Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T12:31:14.177953Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T12:31:14.177957Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T12:31:14.177962Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T12:31:14.177976Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T12:31:14.177995Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T12:31:14.178008Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T12:31:14.178012Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T12:31:14.178017Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T12:31:14.178025Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T12:31:14.178030Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T12:31:14.178043Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T12:31:14.178056Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T12:31:14.179058Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:31:14.179045 UTC
+2026-02-21T12:31:24.603277Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T12:31:24.604175Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T12:31:24.741073Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T12:31:24.746463Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T12:31:24.747535Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T12:31:24.747720Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T12:31:24.747762Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T12:31:24.747788Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T12:31:24.747795Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T12:31:24.747832Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T12:31:24.747830Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T12:31:24.747860Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T12:31:24.747875Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T12:31:24.747882Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T12:31:24.747887Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T12:31:24.747897Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T12:31:24.747890Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T12:31:24.747911Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T12:31:24.748383Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:31:24.748370 UTC
+2026-02-21T12:31:24.752341Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T12:31:24.752437Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T12:31:24.752506Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T12:31:24.753247Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T12:31:24.753267Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T12:32:24.749515Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:32:24.749351 UTC
+2026-02-21T12:33:24.750636Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:33:24.750596 UTC
+2026-02-21T12:34:24.750403Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:34:24.750361 UTC
+2026-02-21T12:35:24.750267Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:35:24.750226 UTC
+2026-02-21T12:36:26.031687Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T12:36:26.032445Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T12:36:26.152298Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T12:36:26.155349Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T12:36:26.155391Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T12:36:26.155458Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T12:36:26.156169Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T12:36:26.156190Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T12:36:26.158739Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T12:36:26.158840Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T12:36:26.158885Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T12:36:26.158940Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T12:36:26.158967Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T12:36:26.158970Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T12:36:26.158989Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T12:36:26.158999Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T12:36:26.159010Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T12:36:26.159024Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T12:36:26.159024Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T12:36:26.159029Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T12:36:26.159032Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T12:36:26.159064Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T12:36:26.159070Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T12:36:26.160663Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:36:26.160635 UTC
+2026-02-21T12:37:26.161315Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:37:26.161177 UTC
+2026-02-21T12:38:26.162224Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:38:26.161988 UTC
+2026-02-21T12:39:26.162194Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:39:26.162045 UTC
+2026-02-21T12:40:26.161624Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:40:26.161475 UTC
+2026-02-21T12:41:26.162430Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:41:26.162332 UTC
+2026-02-21T12:42:26.161575Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:42:26.161517 UTC
+2026-02-21T12:43:26.162358Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:43:26.162042 UTC
+2026-02-21T12:44:26.161902Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:44:26.161715 UTC
+2026-02-21T12:45:26.162079Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:45:26.161947 UTC
+2026-02-21T12:46:26.161461Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:46:26.161386 UTC
+2026-02-21T12:47:26.162651Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:47:26.162500 UTC
+2026-02-21T12:48:26.163368Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:48:26.163228 UTC
+2026-02-21T12:49:26.163775Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:49:26.163635 UTC
+2026-02-21T12:50:26.164263Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:50:26.164110 UTC
+2026-02-21T12:51:26.163816Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:51:26.163682 UTC
+2026-02-21T12:52:26.163625Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:52:26.163502 UTC
+2026-02-21T12:53:26.163951Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:53:26.163838 UTC
+2026-02-21T12:54:26.164698Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:54:26.164640 UTC
+2026-02-21T12:55:26.164972Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:55:26.164821 UTC
+2026-02-21T12:56:26.163938Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:56:26.163784 UTC
+2026-02-21T12:57:26.164751Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:57:26.164591 UTC
+2026-02-21T12:58:26.165020Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:58:26.164927 UTC
+2026-02-21T12:59:26.165723Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 12:59:26.165617 UTC
+2026-02-21T13:00:26.165276Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:00:26.164926 UTC
+2026-02-21T13:01:26.166009Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:01:26.165885 UTC
+2026-02-21T13:02:26.165313Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:02:26.165102 UTC
+2026-02-21T13:03:26.167361Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:03:26.165596 UTC
+2026-02-21T13:04:26.166194Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:04:26.166072 UTC
+2026-02-21T13:05:26.167365Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:05:26.167199 UTC
+2026-02-21T13:06:26.165679Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:06:26.165503 UTC
+2026-02-21T13:07:26.166442Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:07:26.166360 UTC
+2026-02-21T13:08:26.165586Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:08:26.165488 UTC
+2026-02-21T13:09:26.166282Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:09:26.166107 UTC
+2026-02-21T13:10:26.165998Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:10:26.165927 UTC
+2026-02-21T13:11:26.166696Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:11:26.166577 UTC
+2026-02-21T13:12:26.166887Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:12:26.166757 UTC
+2026-02-21T13:13:26.167460Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:13:26.167310 UTC
+2026-02-21T13:14:26.167585Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:14:26.167438 UTC
+2026-02-21T13:15:26.168138Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:15:26.168044 UTC
+2026-02-21T13:16:26.168479Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:16:26.168387 UTC
+2026-02-21T13:33:09.721152Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T13:33:09.721919Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T13:33:09.839410Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T13:33:09.842545Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T13:33:09.842598Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T13:33:09.842665Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T13:33:09.843376Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T13:33:09.843386Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T13:33:09.844748Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T13:33:09.844816Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T13:33:09.844864Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T13:33:09.844918Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T13:33:09.844920Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T13:33:09.844932Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T13:33:09.844946Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T13:33:09.844950Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T13:33:09.844965Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T13:33:09.844969Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T13:33:09.844978Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T13:33:09.844987Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T13:33:09.844989Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T13:33:09.845018Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T13:33:09.845027Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T13:33:09.845884Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:33:09.845866 UTC
+2026-02-21T13:33:09.846921Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:33:31.709962Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T13:33:31.710397Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T13:33:31.819835Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T13:33:31.822799Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T13:33:31.822850Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T13:33:31.822932Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T13:33:31.823544Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T13:33:31.823604Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T13:33:31.823615Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T13:33:31.823634Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T13:33:31.823642Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T13:33:31.823687Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T13:33:31.823696Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T13:33:31.823700Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T13:33:31.823716Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T13:33:31.823723Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T13:33:31.823723Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T13:33:31.823727Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T13:33:31.823745Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T13:33:31.823755Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T13:33:31.823769Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T13:33:31.823799Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T13:33:31.823808Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T13:33:31.824113Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:33:31.824101 UTC
+2026-02-21T13:33:31.824812Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:34:01.826521Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:34:31.825268Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:34:31.825105 UTC
+2026-02-21T13:34:31.827077Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:35:01.827243Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:35:31.825398Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:35:31.825323 UTC
+2026-02-21T13:35:31.826294Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:36:01.825300Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:36:31.824292Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:36:31.824143 UTC
+2026-02-21T13:36:31.826181Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:37:01.826774Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:37:31.824785Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:37:31.824693 UTC
+2026-02-21T13:37:31.825836Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:38:01.826298Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:38:31.824738Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:38:31.824646 UTC
+2026-02-21T13:38:31.825756Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:39:01.825877Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:39:31.825288Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:39:31.825201 UTC
+2026-02-21T13:39:31.826586Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:40:01.826338Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:40:31.825866Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:40:31.825809 UTC
+2026-02-21T13:40:31.826767Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:41:01.826370Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:41:31.826104Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:41:31.825920 UTC
+2026-02-21T13:41:31.827483Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:42:01.826891Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:42:31.825931Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:42:31.825841 UTC
+2026-02-21T13:42:31.827233Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:43:01.827081Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:43:31.824607Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:43:31.824546 UTC
+2026-02-21T13:43:31.825774Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:44:01.827828Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:44:31.826268Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:44:31.826137 UTC
+2026-02-21T13:44:31.827934Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:45:01.827001Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:45:31.826659Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:45:31.826476 UTC
+2026-02-21T13:45:31.828293Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:46:01.826153Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:46:31.825990Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:46:31.825931 UTC
+2026-02-21T13:46:31.827105Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:47:01.827122Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:47:31.826470Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:47:31.826361 UTC
+2026-02-21T13:47:31.827439Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:48:01.826544Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:48:31.826886Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:48:31.826828 UTC
+2026-02-21T13:48:31.827723Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:49:01.826958Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:49:31.826946Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:49:31.826815 UTC
+2026-02-21T13:49:31.827994Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:50:01.827493Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:50:31.826315Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:50:31.826225 UTC
+2026-02-21T13:50:31.827358Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:51:01.827783Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:51:31.828134Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:51:31.828046 UTC
+2026-02-21T13:51:31.829327Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:52:01.829721Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:52:31.828856Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:52:31.828710 UTC
+2026-02-21T13:52:31.830302Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:53:01.829905Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:53:31.828492Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:53:31.828416 UTC
+2026-02-21T13:53:31.835192Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:54:01.829777Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:54:31.828971Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:54:31.828840 UTC
+2026-02-21T13:54:31.830186Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:55:01.829886Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:55:31.828789Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:55:31.828700 UTC
+2026-02-21T13:55:31.829809Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:56:01.830355Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:56:31.829435Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:56:31.829307 UTC
+2026-02-21T13:56:31.830316Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:57:01.830527Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:57:31.829232Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 13:57:31.829079 UTC
+2026-02-21T13:57:31.830542Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T13:58:01.830005Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:04:49.598884Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:04:49.599895Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:04:49.720171Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:04:49.724402Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:04:49.724644Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:04:49.724712Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:04:49.725461Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:04:49.725471Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:04:49.725995Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:04:49.726073Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:04:49.726117Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:04:49.726158Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:04:49.726160Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:04:49.726179Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:04:49.726185Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:04:49.726215Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:04:49.726225Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:04:49.726245Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:04:49.726259Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:04:49.726268Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:04:49.726276Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:04:49.726287Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:04:49.726293Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:04:49.726731Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:04:49.726722 UTC
+2026-02-21T16:04:49.728217Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:05:19.729544Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:05:49.728652Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:05:49.728545 UTC
+2026-02-21T16:05:49.730284Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:06:19.729617Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:06:49.728206Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:06:49.728117 UTC
+2026-02-21T16:06:49.729776Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:07:19.727842Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:07:29.965405Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:07:29.966351Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:07:30.081333Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:07:30.085298Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:07:30.085339Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:07:30.085397Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:07:30.086075Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:07:30.086084Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:07:30.087661Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:07:30.087737Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:07:30.087781Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:07:30.087825Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:07:30.087828Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:07:30.087836Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:07:30.087844Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:07:30.087859Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:07:30.087861Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:07:30.087880Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:07:30.087882Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:07:30.087888Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:07:30.087891Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:07:30.087926Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:07:30.087935Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:07:30.088778Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:07:30.088768 UTC
+2026-02-21T16:07:30.089404Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:07:45.516738Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:07:45.517662Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:07:45.638761Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:07:45.643073Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:07:45.643121Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:07:45.643177Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:07:45.643948Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:07:45.643959Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:07:45.645393Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:07:45.645474Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:07:45.645518Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:07:45.645561Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:07:45.645563Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:07:45.645572Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:07:45.645583Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:07:45.645596Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:07:45.645609Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:07:45.645589Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:07:45.645638Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:07:45.645656Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:07:45.645663Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:07:45.645666Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:07:45.645670Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:07:45.646607Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:07:45.646594 UTC
+2026-02-21T16:07:45.647106Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:08:15.646239Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:08:45.646255Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:08:45.646134 UTC
+2026-02-21T16:08:45.646999Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:09:08.450003Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:09:08.450843Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:09:08.567113Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:09:08.571101Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:09:08.571218Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:09:08.571269Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:09:08.571310Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:09:08.571313Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:09:08.571320Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:09:08.571328Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:09:08.571342Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:09:08.571355Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:09:08.571367Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:09:08.571371Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:09:08.571376Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:09:08.571383Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:09:08.571385Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:09:08.571392Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:09:08.571397Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:09:08.571429Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:09:08.571480Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:09:08.571803Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:09:08.571788 UTC
+2026-02-21T16:09:08.572406Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:09:08.572440Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:09:08.572693Z ERROR core_jobs::worker: Sweeper error: error returned from database: relation "outbox_jobs" does not exist
+2026-02-21T16:09:25.195956Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:09:25.196920Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:09:25.313904Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:09:25.317892Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:09:25.317935Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:09:25.317997Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:09:25.318665Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:09:25.318674Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:09:25.319914Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:09:25.319986Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:09:25.320032Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:09:25.320081Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:09:25.320086Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:09:25.320092Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:09:25.320102Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:09:25.320117Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:09:25.320140Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:09:25.320142Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:09:25.320144Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:09:25.320158Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:09:25.320167Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:09:25.320176Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:09:25.320196Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:09:25.321013Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:09:25.320999 UTC
+2026-02-21T16:10:25.323433Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:10:25.322969 UTC
+2026-02-21T16:11:28.164663Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:11:28.165340Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:11:28.285666Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:11:28.289618Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:11:28.289660Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:11:28.289723Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:11:28.290413Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:11:28.290436Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:11:28.292708Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:11:28.292804Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:11:28.292863Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:11:28.292908Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:11:28.292919Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:11:28.292931Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:11:28.292939Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:11:28.292950Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:11:28.292957Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:11:28.292959Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:11:28.292969Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:11:28.292992Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:11:28.293004Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:11:28.293011Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:11:28.293016Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:11:28.293546Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:11:28.293533 UTC
+2026-02-21T16:12:28.295327Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:12:28.295174 UTC
+2026-02-21T16:13:28.295414Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:13:28.295239 UTC
+2026-02-21T16:14:28.295892Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:14:28.295656 UTC
+2026-02-21T16:16:14.905227Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:16:14.905846Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:16:15.020815Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:16:15.024771Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:16:15.024816Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:16:15.024873Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:16:15.025592Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:16:15.025615Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:16:15.027209Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:16:15.027299Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:16:15.027353Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:16:15.027410Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:16:15.027408Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:16:15.027416Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:16:15.027421Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:16:15.027438Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:16:15.027448Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:16:15.027446Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:16:15.027462Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:16:15.027471Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:16:15.027479Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:16:15.027492Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:16:15.027508Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:16:15.028148Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:16:15.028136 UTC
+2026-02-21T16:16:19.888206Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:16:19.889453Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:16:20.010039Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:16:20.013887Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:16:20.013928Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:16:20.013984Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:16:20.014611Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:16:20.014632Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:16:20.015738Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:16:20.015814Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:16:20.015871Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:16:20.015923Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:16:20.015923Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:16:20.015925Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:16:20.015941Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:16:20.015949Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:16:20.015983Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:16:20.016004Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:16:20.016004Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:16:20.016002Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:16:20.016007Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:16:20.016016Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:16:20.016025Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:16:20.016354Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:16:20.016344 UTC
+2026-02-21T16:16:31.030137Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:16:31.030909Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:16:31.151355Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:16:31.155216Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:16:31.155255Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:16:31.155309Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:16:31.156000Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:16:31.156022Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:16:31.157693Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:16:31.157779Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:16:31.157847Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:16:31.157896Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:16:31.157900Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:16:31.157910Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:16:31.157916Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:16:31.157922Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:16:31.157925Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:16:31.157953Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:16:31.157960Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:16:31.157966Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:16:31.157969Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:16:31.157974Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:16:31.158014Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:16:31.160950Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:16:31.160937 UTC
+2026-02-21T16:16:44.204306Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:16:44.205557Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:16:44.320628Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:16:44.324494Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:16:44.324537Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:16:44.324594Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:16:44.325254Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:16:44.325275Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:16:44.326833Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:16:44.326914Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:16:44.326975Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:16:44.327020Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:16:44.327024Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:16:44.327037Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:16:44.327045Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:16:44.327057Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:16:44.327062Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:16:44.327067Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:16:44.327072Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:16:44.327082Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:16:44.327092Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:16:44.327095Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:16:44.327139Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:16:44.327575Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:16:44.327561 UTC
+2026-02-21T16:17:44.330050Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:17:44.329778 UTC
+2026-02-21T16:21:08.340836Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:21:08.341553Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:21:08.471011Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:21:08.475755Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:21:08.475800Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:21:08.475865Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:21:08.476554Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:21:08.476563Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:21:08.477090Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:21:08.477187Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:21:08.477242Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:21:08.477287Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:21:08.477292Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:21:08.477304Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:21:08.477321Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:21:08.477321Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:21:08.477326Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:21:08.477350Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:21:08.477353Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:21:08.477371Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:21:08.477380Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:21:08.477391Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:21:08.477399Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:21:08.478266Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:21:08.478253 UTC
+2026-02-21T16:21:23.373188Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:21:23.374239Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:21:23.494074Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:21:23.499332Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:21:23.499383Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:21:23.499444Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:21:23.500279Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:21:23.500291Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:21:23.502449Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:21:23.502587Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:21:23.502683Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:21:23.502745Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:21:23.502747Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:21:23.502766Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:21:23.502778Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:21:23.502805Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:21:23.502808Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:21:23.502810Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:21:23.502815Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:21:23.502828Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:21:23.502834Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:21:23.502845Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:21:23.502858Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:21:23.503988Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:21:23.503977 UTC
+2026-02-21T16:22:23.505097Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:22:23.504946 UTC
+2026-02-21T16:23:23.505063Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:23:23.504899 UTC
+2026-02-21T16:23:49.497723Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:23:49.498441Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:23:49.621092Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:23:49.625650Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:23:49.625874Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:23:49.625950Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:23:49.626006Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:23:49.626011Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:23:49.626018Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:23:49.626023Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:23:49.626031Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:23:49.626039Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:23:49.626047Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:23:49.626055Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:23:49.626067Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:23:49.626070Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:23:49.626087Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:23:49.626093Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:23:49.626164Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:23:49.626204Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:23:49.626263Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:23:49.627027Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:23:49.627039Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:23:49.627881Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:23:49.627866 UTC
+2026-02-21T16:24:49.628861Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:24:49.628767 UTC
+2026-02-21T16:25:16.087685Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:25:16.089072Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:25:16.203743Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:25:16.208414Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:25:16.208464Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:25:16.208527Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:25:16.209224Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:25:16.209235Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:25:16.209778Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:25:16.209910Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:25:16.209964Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:25:16.210024Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:25:16.210029Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:25:16.210038Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:25:16.210043Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:25:16.210070Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:25:16.210079Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:25:16.210083Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:25:16.210088Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:25:16.210073Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:25:16.210118Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:25:16.210131Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:25:16.210125Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:25:16.210914Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:25:16.210896 UTC
+2026-02-21T16:25:21.996355Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:25:21.997777Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:25:22.136785Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:25:22.141437Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:25:22.142284Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:25:22.142474Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:25:22.142521Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:25:22.142529Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:25:22.142532Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:25:22.142555Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:25:22.142571Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:25:22.142598Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:25:22.142616Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:25:22.142629Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:25:22.142637Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:25:22.142644Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:25:22.142649Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:25:22.142699Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:25:22.143435Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:25:22.143395 UTC
+2026-02-21T16:25:22.152433Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:25:22.152669Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:25:22.152724Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:25:22.154770Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:25:22.154780Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:26:22.145283Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:26:22.145088 UTC
+2026-02-21T16:32:05.337115Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:32:05.338115Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:32:05.457956Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:32:05.462357Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:32:05.462405Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:32:05.462465Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:32:05.463110Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:32:05.463121Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:32:05.464019Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:32:05.464119Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:32:05.464172Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:32:05.464217Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:32:05.464226Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:32:05.464238Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:32:05.464248Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:32:05.464250Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:32:05.464255Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:32:05.464283Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:32:05.464286Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:32:05.464288Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:32:05.464290Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:32:05.464306Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:32:05.464335Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:32:05.465200Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:32:05.465176 UTC
+2026-02-21T16:33:05.466720Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:33:05.466637 UTC
+2026-02-21T16:34:05.466918Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:34:05.466782 UTC
+2026-02-21T16:35:04.987891Z  INFO bootstrap::boot: Bootstrapping starter (local)
+2026-02-21T16:35:04.989470Z  WARN core_i18n: TZ=+08:00 set, but local offset is -08:00:00; expected +08:00:00
+2026-02-21T16:35:05.125960Z  INFO core_jobs::utils: RUN_WORKER=true: Spawning background worker in this process
+2026-02-21T16:35:05.133035Z  INFO bootstrap::jobs: Starting Worker...
+2026-02-21T16:35:05.133866Z  INFO bootstrap::jobs: Spawning Cron Scheduler...
+2026-02-21T16:35:05.134105Z  INFO core_jobs::worker: Worker started. Queues: ["default"], Jobs: ["core:cleanup_http_logs"]
+2026-02-21T16:35:05.134147Z  INFO core_jobs::worker: Scheduler started
+2026-02-21T16:35:05.134152Z  INFO core_jobs::worker: Outbox sweeper started
+2026-02-21T16:35:05.134153Z  INFO core_jobs::worker: Starting worker thread 9
+2026-02-21T16:35:05.134164Z  INFO core_jobs::worker: Starting worker thread 2
+2026-02-21T16:35:05.134168Z  INFO core_jobs::worker: Starting worker thread 0
+2026-02-21T16:35:05.134198Z  INFO core_jobs::worker: Starting worker thread 3
+2026-02-21T16:35:05.134199Z  INFO core_jobs::worker: Starting worker thread 6
+2026-02-21T16:35:05.134184Z  INFO core_jobs::worker: Starting worker thread 5
+2026-02-21T16:35:05.134222Z  INFO core_jobs::worker: Starting worker thread 4
+2026-02-21T16:35:05.134225Z  INFO core_jobs::worker: Starting worker thread 7
+2026-02-21T16:35:05.134229Z  INFO core_jobs::worker: Starting worker thread 8
+2026-02-21T16:35:05.134234Z  INFO core_jobs::worker: Starting worker thread 1
+2026-02-21T16:35:05.134962Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:35:05.134941 UTC
+2026-02-21T16:35:05.142230Z  INFO bootstrap::web: Framework Docs Enabled at '/framework-documentation'
+2026-02-21T16:35:05.142491Z  INFO core_docs: Docs: serving frontend assets from public/framework-documentation
+2026-02-21T16:35:05.142553Z  INFO bootstrap::web: OpenAPI Docs Enabled at '/openapi' (spec: '/openapi.json')
+2026-02-21T16:35:05.144525Z  INFO bootstrap::web: Starting server on 127.0.0.1:3000
+2026-02-21T16:35:05.144537Z  INFO core_web::server: Listening on http://127.0.0.1:3000
+2026-02-21T16:36:05.135919Z  INFO core_jobs::cron: Scheduler Tick: 2026-02-21 16:36:05.135696 UTC

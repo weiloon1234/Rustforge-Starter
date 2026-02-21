@@ -1,5 +1,23 @@
 {
+  "Admin list loaded": "Admin list loaded",
+  "Admin loaded": "Admin loaded",
+  "Admin created": "Admin created",
+  "Admin updated": "Admin updated",
+  "Admin deleted": "Admin deleted",
+  "Username is already taken": "Username is already taken",
+  "Cannot assign permissions you do not have": "Cannot assign permissions you do not have",
+  "You cannot update your own admin account here": "You cannot update your own admin account here",
+  "You cannot delete your own admin account here": "You cannot delete your own admin account here",
+  "Normal admin cannot assign admin.read or admin.manage": "Normal admin cannot assign admin.read or admin.manage",
+  "Profile loaded": "Profile loaded",
+  "Login successful": "Login successful",
+  "Token refreshed": "Token refreshed",
+  "Logout successful": "Logout successful",
   "Profile updated successfully": "Profile updated successfully",
+  "Password updated successfully": "Password updated successfully",
+  "Current password is incorrect": "Current password is incorrect",
+  "Admin not found": "Admin not found",
+  "Missing refresh token": "Missing refresh token",
   "Invalid credentials": "Invalid credentials",
   "Access denied": "Access denied"
 }

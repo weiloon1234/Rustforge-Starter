@@ -3,7 +3,6 @@ use async_trait::async_trait;
 use core_db::common::sql::DbConn;
 use core_db::platform::personal_access_tokens::model::PersonalAccessTokenRow;
 use core_db::platform::personal_access_tokens::repo::PatRepo;
-use uuid::Uuid;
 use core_web::auth::Guard;
 use crate::generated::models::admin::{AdminView, AdminQuery};
 
@@ -20,17 +19,18 @@ impl Guard for AdminGuard {
     fn tokenable_type() -> Option<&'static str> {
         Some("admin")
     }
-    async fn fetch_user<'a>(db: DbConn<'a>, id: Uuid) -> anyhow::Result<Option<Self::User>> {
-        AdminQuery::new(db, None).find(id).await
+    async fn fetch_user<'a>(db: DbConn<'a>, id: &str) -> anyhow::Result<Option<Self::User>> {
+        let parsed = match id.trim().parse::<i64>() { Ok(v) => v, Err(_) => return Ok(None), };
+        AdminQuery::new(db, None).find(parsed).await
     }
 }
 
-pub async fn list_tokens<'a>(db: DbConn<'a>, subject_id: Uuid) -> anyhow::Result<Vec<PersonalAccessTokenRow>> {
+pub async fn list_tokens<'a>(db: DbConn<'a>, subject_id: &str) -> anyhow::Result<Vec<PersonalAccessTokenRow>> {
     let tokenable_type = <AdminGuard as Guard>::tokenable_type().unwrap_or(<AdminGuard as Guard>::name());
     PatRepo::new(db).list_by_subject(tokenable_type, subject_id).await
 }
 
-pub async fn revoke_tokens<'a>(db: DbConn<'a>, subject_id: Uuid) -> anyhow::Result<u64> {
+pub async fn revoke_tokens<'a>(db: DbConn<'a>, subject_id: &str) -> anyhow::Result<u64> {
     let tokenable_type = <AdminGuard as Guard>::tokenable_type().unwrap_or(<AdminGuard as Guard>::name());
     PatRepo::new(db).revoke_by_subject(tokenable_type, subject_id).await
 }

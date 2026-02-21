@@ -57,6 +57,7 @@ make run-worker
 make migrate-pump
 make migrate-run
 make server-install
+make server-update
 make framework-docs-build
 ```
 
@@ -78,6 +79,22 @@ The installer is idempotent (safe to run multiple times) and will:
 - generate/update nginx site config
 - optionally configure Supervisor programs
 - optionally issue/renew Let's Encrypt certificates with cron renewal
+
+## Server Update Script
+
+Use the generated update helper for deploy-like updates:
+
+```bash
+./scripts/update.sh
+# optional opt-out
+RUN_MIGRATIONS=false ./scripts/update.sh
+```
+
+It will:
+- `git pull --ff-only`
+- compile release binaries (`cargo build --release --workspace`)
+- run migrations by default (set `RUN_MIGRATIONS=false` to skip)
+- reread/update and restart Supervisor programs from the installed supervisor config
 
 ## i18n Ownership
 
