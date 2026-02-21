@@ -5,6 +5,7 @@ RUSTFORGE_PATH ?= ../Rustforge
 help:
 	@echo "Starter Makefile"
 	@echo "--------------"
+	@echo "  make dev"
 	@echo "  make run-api"
 	@echo "  make run-ws"
 	@echo "  make run-worker"
@@ -17,6 +18,15 @@ help:
 	@echo "  make framework-docs-build"
 	@echo "  make check"
 	@echo "  make gen"
+
+.PHONY: install-tools
+install-tools:
+	@command -v cargo-watch >/dev/null 2>&1 || cargo install cargo-watch
+
+.PHONY: dev
+dev:
+	@command -v cargo-watch >/dev/null 2>&1 || (echo "cargo-watch not found. Run: make install-tools" && exit 1)
+	RUN_WORKER=true cargo watch -x "run -p app --bin api-server"
 
 .PHONY: run-api
 run-api:

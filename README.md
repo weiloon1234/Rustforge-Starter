@@ -49,6 +49,7 @@ cargo build -p generated
 ## Daily Commands
 
 ```bash
+make dev
 make check
 make run-api
 make run-ws
