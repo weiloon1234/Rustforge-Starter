@@ -8,6 +8,7 @@ bootstrap = { workspace = true }
 core-config = { workspace = true }
 core-db = { workspace = true }
 core-datatable = { workspace = true }
+core-mailer = { workspace = true }
 core-i18n = { workspace = true }
 core-jobs = { workspace = true }
 core-notify = { workspace = true }

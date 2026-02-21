@@ -15,6 +15,20 @@ impl Default for AdminType {
     }
 }
 
+impl AdminType {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Developer => "developer",
+            Self::SuperAdmin => "superadmin",
+            Self::Admin => "admin",
+        }
+    }
+
+    pub const fn variants() -> &'static [Self] {
+        &[Self::Developer, Self::SuperAdmin, Self::Admin]
+    }
+}
+
 // sqlx support for TEXT storage
 impl sqlx::Encode<'_, sqlx::Postgres> for AdminType {
     fn encode_by_ref(&self, buf: &mut sqlx::postgres::PgArgumentBuffer) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {

@@ -1,6 +1,16 @@
 SHELL := /bin/bash
 RUSTFORGE_PATH ?= ../Rustforge
 
+ifneq (,$(wildcard ./.env))
+	include ./.env
+	export
+endif
+
+PUBLIC_PATH ?= public
+FRAMEWORK_DOCS_PATH ?= /framework-documentation
+FRAMEWORK_DOCS_ROUTE := $(patsubst /%,%,$(FRAMEWORK_DOCS_PATH))
+FRAMEWORK_DOCS_DIR := $(PUBLIC_PATH)/$(FRAMEWORK_DOCS_ROUTE)
+
 .PHONY: help
 help:
 	@echo "Starter Makefile"
@@ -67,6 +77,10 @@ assets-publish:
 .PHONY: framework-docs-build
 framework-docs-build:
 	npm --prefix $(RUSTFORGE_PATH)/core-docs/frontend run build
+	@mkdir -p "$(FRAMEWORK_DOCS_DIR)"
+	@find "$(FRAMEWORK_DOCS_DIR)" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+	cp -R "$(RUSTFORGE_PATH)/core-docs/frontend/dist/." "$(FRAMEWORK_DOCS_DIR)/"
+	@echo "Published framework docs assets to $(FRAMEWORK_DOCS_DIR)"
 
 .PHONY: check
 check:

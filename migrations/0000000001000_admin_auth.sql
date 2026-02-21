@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS admin (
     name TEXT NOT NULL,
     admin_type TEXT NOT NULL CHECK (admin_type IN ('developer', 'superadmin', 'admin')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ
 );

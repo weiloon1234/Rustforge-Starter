@@ -1,5 +1,9 @@
 use async_trait::async_trait;
-use core_db::{common::sql::DbConn, platform::countries::repo::CountryRepo, seeder::Seeder};
+use core_db::{
+    common::sql::DbConn,
+    platform::countries::repo::CountryRepo,
+    seeder::Seeder,
+};
 
 #[derive(Debug, Default)]
 pub struct CountriesSeeder;

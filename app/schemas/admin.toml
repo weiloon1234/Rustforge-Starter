@@ -11,6 +11,7 @@ table = "admin"
 pk = "id"
 pk_type = "uuid"
 id_strategy = "manual"
+soft_delete = true
 fields = [
   "id:uuid",
   "email:string",

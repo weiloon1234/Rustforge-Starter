@@ -20,12 +20,11 @@ toml = "0.9"
 uuid = { version = "1", features = ["serde", "v4"] }
 time = { version = "0.3", features = ["serde"] }
 
-# Rustforge framework dependencies (git mode).
-# Pin to `tag = "vX.Y.Z"` for release stability once tags are available.
 bootstrap = { git = "https://github.com/weiloon1234/Rustforge.git", branch = "main" }
 core-config = { git = "https://github.com/weiloon1234/Rustforge.git", branch = "main" }
 core-db = { git = "https://github.com/weiloon1234/Rustforge.git", branch = "main" }
 core-datatable = { git = "https://github.com/weiloon1234/Rustforge.git", branch = "main" }
+core-mailer = { git = "https://github.com/weiloon1234/Rustforge.git", branch = "main" }
 core-i18n = { git = "https://github.com/weiloon1234/Rustforge.git", branch = "main" }
 core-jobs = { git = "https://github.com/weiloon1234/Rustforge.git", branch = "main" }
 core-notify = { git = "https://github.com/weiloon1234/Rustforge.git", branch = "main" }

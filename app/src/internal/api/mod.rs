@@ -7,7 +7,9 @@ use std::sync::Arc;
 use axum::{routing::get as axum_get, Json, Router};
 use bootstrap::boot::BootContext;
 use core_web::openapi::{
-    aide::openapi::{Info, OpenApi},
+    aide::{
+        openapi::{Info, OpenApi},
+    },
     ApiRouter,
 };
 

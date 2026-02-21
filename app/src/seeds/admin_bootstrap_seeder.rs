@@ -1,6 +1,9 @@
 use async_trait::async_trait;
 use core_db::{
-    common::{auth::hash::hash_password, sql::DbConn},
+    common::{
+        auth::hash::hash_password,
+        sql::DbConn,
+    },
     platform::auth_subject_permissions::repo::AuthSubjectPermissionRepo,
     seeder::Seeder,
 };
@@ -20,7 +23,7 @@ impl Seeder for AdminBootstrapSeeder {
             db,
             &env_or("SEED_ADMIN_DEVELOPER_EMAIL", "developer@example.com"),
             &env_or("SEED_ADMIN_DEVELOPER_PASSWORD", "password123"),
-            "Developer",
+            &env_or("SEED_ADMIN_DEVELOPER_NAME", "Developer"),
             "developer",
         )
         .await?;
@@ -29,21 +32,19 @@ impl Seeder for AdminBootstrapSeeder {
             db,
             &env_or("SEED_ADMIN_SUPERADMIN_EMAIL", "superadmin@example.com"),
             &env_or("SEED_ADMIN_SUPERADMIN_PASSWORD", "password123"),
-            "Super Admin",
+            &env_or("SEED_ADMIN_SUPERADMIN_NAME", "Super Admin"),
             "superadmin",
         )
         .await?;
 
         let repo = AuthSubjectPermissionRepo::new(DbConn::pool(db));
-        repo.replace("admin", developer_id, &["*".to_string()])
-            .await?;
+        repo.replace("admin", developer_id, &["*".to_string()]).await?;
 
         let super_permissions = generated::permissions::Permission::all()
             .iter()
             .map(|permission| permission.as_str().to_string())
             .collect::<Vec<_>>();
-        repo.replace("admin", superadmin_id, &super_permissions)
-            .await?;
+        repo.replace("admin", superadmin_id, &super_permissions).await?;
 
         Ok(())
     }
@@ -63,7 +64,8 @@ fn should_skip_in_env() -> bool {
         return false;
     }
 
-    !is_truthy(&std::env::var("SEED_ADMIN_BOOTSTRAP_IN_PROD").unwrap_or_default())
+    let raw = env_or("SEED_ADMIN_BOOTSTRAP_IN_PROD", "");
+    !is_truthy(&raw)
 }
 
 fn is_truthy(raw: &str) -> bool {
@@ -74,11 +76,13 @@ fn is_truthy(raw: &str) -> bool {
 }
 
 fn env_or(key: &str, default: &str) -> String {
-    std::env::var(key)
-        .ok()
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| default.to_string())
+    if let Ok(value) = std::env::var(key) {
+        let value = value.trim();
+        if !value.is_empty() {
+            return value.to_string();
+        }
+    }
+    default.to_string()
 }
 
 async fn upsert_admin(

@@ -3,17 +3,21 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use axum::http::HeaderMap;
 use core_datatable::{DataTableAsyncExportManager, DataTableContext, DataTableRegistry};
-use core_web::datatable::{DataTableRouteOptions, DataTableRouteState};
+use core_db::infra::storage::Storage;
+use core_web::datatable::{
+    DataTableEmailExportManager, DataTableRouteOptions, DataTableRouteState,
+};
 use core_web::openapi::ApiRouter;
 
+use crate::contracts::datatable::admin::admin::AdminAdminDataTableContract;
 use crate::internal::api::state::AppApiState;
 
 pub fn router(state: AppApiState) -> ApiRouter {
-    core_web::datatable::routes_with_prefix_and_options(
-        "/datatable",
+    core_web::datatable::routes_for_scoped_contract_with_options(
+        "/datatable/admin",
         state,
+        AdminAdminDataTableContract,
         DataTableRouteOptions {
-            include_multipart_endpoints: true,
             require_bearer_auth: true,
         },
     )
@@ -27,6 +31,22 @@ impl DataTableRouteState for AppApiState {
 
     fn datatable_async_exports(&self) -> &Arc<DataTableAsyncExportManager> {
         &self.datatable_async_exports
+    }
+
+    fn datatable_storage(&self) -> &Arc<dyn Storage> {
+        &self.storage
+    }
+
+    fn datatable_mailer(&self) -> &Arc<core_mailer::Mailer> {
+        &self.mailer
+    }
+
+    fn datatable_email_exports(&self) -> &Arc<DataTableEmailExportManager> {
+        &self.datatable_email_exports
+    }
+
+    fn datatable_export_link_ttl_secs(&self) -> u64 {
+        self.datatable_export_link_ttl_secs
     }
 
     async fn datatable_context(&self, headers: &HeaderMap) -> DataTableContext {

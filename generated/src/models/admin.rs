@@ -18,7 +18,7 @@ use super::enums::*;
 
 const HAS_CREATED_AT: bool = true;
 const HAS_UPDATED_AT: bool = true;
-const HAS_SOFT_DELETE: bool = false;
+const HAS_SOFT_DELETE: bool = true;
 
 #[derive(Debug, Clone, FromRow, Serialize, Deserialize, JsonSchema)]
 #[doc(hidden)]
@@ -34,6 +34,9 @@ pub struct AdminRow {
     #[serde(with = "time::serde::rfc3339")]
     #[schemars(with = "String")]
     pub updated_at: time::OffsetDateTime,
+    #[serde(with = "time::serde::rfc3339::option")]
+    #[schemars(with = "String")]
+    pub deleted_at: Option<time::OffsetDateTime>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
@@ -47,6 +50,8 @@ pub struct AdminView {
     pub created_at: time::OffsetDateTime,
     #[schemars(with = "String")]
     pub updated_at: time::OffsetDateTime,
+    #[schemars(with = "String")]
+    pub deleted_at: Option<time::OffsetDateTime>,
 }
 
 impl AdminView {
@@ -65,6 +70,7 @@ impl AdminView {
             admin_type: self.admin_type.clone(),
             created_at: self.created_at.clone(),
             updated_at: self.updated_at.clone(),
+            deleted_at: self.deleted_at.clone(),
         }
     }
 }
@@ -95,6 +101,8 @@ pub struct AdminJson {
     pub created_at: time::OffsetDateTime,
     #[schemars(with = "String")]
     pub updated_at: time::OffsetDateTime,
+    #[schemars(with = "String")]
+    pub deleted_at: Option<time::OffsetDateTime>,
 }
 
 fn hydrate_view(row: AdminRow, loc: &LocalizedMap, base_url: Option<&str>) -> AdminView {
@@ -106,6 +114,7 @@ fn hydrate_view(row: AdminRow, loc: &LocalizedMap, base_url: Option<&str>) -> Ad
         admin_type: row.admin_type,
         created_at: row.created_at,
         updated_at: row.updated_at,
+        deleted_at: row.deleted_at,
     };
     view
 }
@@ -119,11 +128,12 @@ pub enum AdminCol {
     AdminType,
     CreatedAt,
     UpdatedAt,
+    DeletedAt,
 }
 
 impl AdminCol {
     pub const fn all() -> &'static [AdminCol] {
-        &[AdminCol::Id, AdminCol::Email, AdminCol::Password, AdminCol::Name, AdminCol::AdminType, AdminCol::CreatedAt, AdminCol::UpdatedAt]
+        &[AdminCol::Id, AdminCol::Email, AdminCol::Password, AdminCol::Name, AdminCol::AdminType, AdminCol::CreatedAt, AdminCol::UpdatedAt, AdminCol::DeletedAt]
     }
     pub const fn as_sql(self) -> &'static str {
         match self {
@@ -134,6 +144,7 @@ impl AdminCol {
             AdminCol::AdminType => "admin_type",
             AdminCol::CreatedAt => "created_at",
             AdminCol::UpdatedAt => "updated_at",
+            AdminCol::DeletedAt => "deleted_at",
         }
     }
 }
@@ -155,6 +166,9 @@ impl<'db> Admin<'db> {
     }
     pub async fn delete(&self, id: uuid::Uuid) -> Result<u64> {
         self.query().where_id(Op::Eq, id).delete().await
+    }
+    pub async fn restore(&self, id: uuid::Uuid) -> Result<u64> {
+        self.query().where_id(Op::Eq, id).restore().await
     }
 }
 
@@ -178,11 +192,13 @@ pub struct AdminQuery<'db> {
     offset: Option<i64>,
     limit: Option<i64>,
     binds: Vec<BindValue>,
+    with_deleted: bool,
+    only_deleted: bool,
 }
 
 impl<'db> AdminQuery<'db> {
     pub fn new(db: DbConn<'db>, base_url: Option<String>) -> Self {
-        Self { db, base_url, select_sql: Some("id, email, password, name, admin_type, created_at, updated_at".to_string()), from_sql: None, count_sql: None, distinct: false, distinct_on: None, lock_sql: None, join_sql: vec![], join_binds: vec![], where_sql: vec![], order_sql: vec![], group_by_sql: vec![], having_sql: vec![], having_binds: vec![], offset: None, limit: None, binds: vec![] }
+        Self { db, base_url, select_sql: Some("id, email, password, name, admin_type, created_at, updated_at, deleted_at".to_string()), from_sql: None, count_sql: None, distinct: false, distinct_on: None, lock_sql: None, join_sql: vec![], join_binds: vec![], where_sql: vec![], order_sql: vec![], group_by_sql: vec![], having_sql: vec![], having_binds: vec![], offset: None, limit: None, binds: vec![], with_deleted: false, only_deleted: false }
     }
     pub fn unsafe_sql(self) -> AdminUnsafeQuery<'db> { AdminUnsafeQuery::new(self) }
     pub fn where_id(mut self, op: Op, val: uuid::Uuid) -> Self {
@@ -266,6 +282,18 @@ impl<'db> AdminQuery<'db> {
     pub fn where_updated_at_raw<T: Into<BindValue>>(mut self, op: Op, val: T) -> Self {
         let idx = self.binds.len() + 1;
         self.where_sql.push(format!("{} {} ${}", AdminCol::UpdatedAt.as_sql(), op.as_sql(), idx));
+        self.binds.push(val.into());
+        self
+    }
+    pub fn where_deleted_at(mut self, op: Op, val: Option<time::OffsetDateTime>) -> Self {
+        let idx = self.binds.len() + 1;
+        self.where_sql.push(format!("{} {} ${}", AdminCol::DeletedAt.as_sql(), op.as_sql(), idx));
+        self.binds.push(val.into());
+        self
+    }
+    pub fn where_deleted_at_raw<T: Into<BindValue>>(mut self, op: Op, val: T) -> Self {
+        let idx = self.binds.len() + 1;
+        self.where_sql.push(format!("{} {} ${}", AdminCol::DeletedAt.as_sql(), op.as_sql(), idx));
         self.binds.push(val.into());
         self
     }
@@ -389,10 +417,10 @@ impl<'db> AdminQuery<'db> {
     }
     pub fn select_cols(mut self, cols: &[AdminCol]) -> Self {
         if cols.is_empty() {
-            self.select_sql = Some("id, email, password, name, admin_type, created_at, updated_at".to_string());
+            self.select_sql = Some("id, email, password, name, admin_type, created_at, updated_at, deleted_at".to_string());
         } else {
             let mut seen = std::collections::BTreeSet::new();
-            let mut list: Vec<String> = "id, email, password, name, admin_type, created_at, updated_at".split(',').map(|s| s.trim().to_string()).collect();
+            let mut list: Vec<String> = "id, email, password, name, admin_type, created_at, updated_at, deleted_at".split(',').map(|s| s.trim().to_string()).collect();
             for s in &list { seen.insert(s.clone()); }
             for c in cols { let s = c.as_sql().to_string(); if seen.insert(s.clone()) { list.push(s); } }
             self.select_sql = Some(list.join(", "));
@@ -403,7 +431,7 @@ impl<'db> AdminQuery<'db> {
         let mut seen = std::collections::BTreeSet::new();
         let mut list: Vec<String> = match self.select_sql.take() {
             Some(s) if !s.is_empty() => s.split(',').map(|s| s.trim().to_string()).collect(),
-            _ => "id, email, password, name, admin_type, created_at, updated_at".split(',').map(|s| s.trim().to_string()).collect(),
+            _ => "id, email, password, name, admin_type, created_at, updated_at, deleted_at".split(',').map(|s| s.trim().to_string()).collect(),
         };
         for s in &list { seen.insert(s.clone()); }
         for c in cols { let s = c.as_sql().to_string(); if seen.insert(s.clone()) { list.push(s); } }
@@ -413,16 +441,16 @@ impl<'db> AdminQuery<'db> {
     fn select_raw(mut self, sql: impl Into<String>) -> Self {
         let s = sql.into();
         if s.is_empty() {
-            self.select_sql = Some("id, email, password, name, admin_type, created_at, updated_at".to_string());
+            self.select_sql = Some("id, email, password, name, admin_type, created_at, updated_at, deleted_at".to_string());
         } else {
-            self.select_sql = Some(format!("id, email, password, name, admin_type, created_at, updated_at, {}", s));
+            self.select_sql = Some(format!("id, email, password, name, admin_type, created_at, updated_at, deleted_at, {}", s));
         }
         self
     }
     fn add_select_raw(mut self, sql: impl Into<String>) -> Self {
         let s = sql.into();
         if s.is_empty() { return self; }
-        let mut base = self.select_sql.take().unwrap_or_else(|| "id, email, password, name, admin_type, created_at, updated_at".to_string());
+        let mut base = self.select_sql.take().unwrap_or_else(|| "id, email, password, name, admin_type, created_at, updated_at, deleted_at".to_string());
         if !base.is_empty() { base.push_str(", "); }
         base.push_str(&s);
         self.select_sql = Some(base);
@@ -574,6 +602,8 @@ impl<'db> AdminQuery<'db> {
         self.offset = Some(n);
         self
     }
+    pub fn with_deleted(mut self) -> Self { self.with_deleted = true; self }
+    pub fn only_deleted(mut self) -> Self { self.only_deleted = true; self }
     pub async fn get_as<T>(self) -> Result<Vec<T>>
     where
         T: for<'r> sqlx::FromRow<'r, sqlx::postgres::PgRow> + Send + Unpin + 'static,
@@ -621,8 +651,15 @@ impl<'db> AdminQuery<'db> {
     }
 
     pub async fn get(self) -> Result<Vec<AdminView>> {
-        let Self { db, base_url, select_sql, from_sql, distinct, distinct_on, lock_sql, join_sql, join_binds, where_sql, order_sql, group_by_sql, having_sql, having_binds, offset, limit, binds , .. } = self;
+        let Self { db, base_url, select_sql, from_sql, distinct, distinct_on, lock_sql, join_sql, join_binds, where_sql, order_sql, group_by_sql, having_sql, having_binds, offset, limit, binds , with_deleted, only_deleted, .. } = self;
         let mut where_sql = where_sql;
+        if HAS_SOFT_DELETE {
+            if only_deleted {
+                where_sql.push(format!("{} IS NOT NULL", AdminCol::DeletedAt.as_sql()));
+            } else if !with_deleted {
+                where_sql.push(format!("{} IS NULL", AdminCol::DeletedAt.as_sql()));
+            }
+        }
         let select_clause = match (distinct, distinct_on.as_ref()) {
             (false, None) => select_sql.unwrap_or_else(|| "*".to_string()),
             (true, None) => format!("DISTINCT {}", select_sql.unwrap_or_else(|| "*".to_string())),
@@ -722,6 +759,9 @@ impl<'db> AdminQuery<'db> {
         let db = self.db.clone();
         let mut where_sql = self.where_sql;
         let binds = self.binds;
+        if HAS_SOFT_DELETE && !self.with_deleted {
+            where_sql.push(format!("{} IS NULL", AdminCol::DeletedAt.as_sql()));
+        }
         let where_clause = if where_sql.is_empty() { String::new() } else { format!(" WHERE {}", where_sql.join(" AND ")) };
         let sql = format!("UPDATE admin SET {} = {} + {} {}", col.as_sql(), col.as_sql(), amount, where_clause);
         let mut q = sqlx::query(&sql);
@@ -735,8 +775,15 @@ impl<'db> AdminQuery<'db> {
     }
 
     pub async fn count(self) -> Result<i64> {
-        let Self { db, from_sql, count_sql, join_sql, join_binds, where_sql, binds  , .. } = self;
+        let Self { db, from_sql, count_sql, join_sql, join_binds, where_sql, binds , with_deleted, only_deleted , .. } = self;
         let mut where_sql = where_sql;
+        if HAS_SOFT_DELETE {
+            if only_deleted {
+                where_sql.push(format!("{} IS NOT NULL", AdminCol::DeletedAt.as_sql()));
+            } else if !with_deleted {
+                where_sql.push(format!("{} IS NULL", AdminCol::DeletedAt.as_sql()));
+            }
+        }
         let table_name = from_sql.unwrap_or_else(|| "admin".to_string());
         let from_clause = if join_sql.is_empty() {
             format!("FROM {}", table_name)
@@ -758,8 +805,15 @@ impl<'db> AdminQuery<'db> {
     }
 
     pub async fn pluck_ids(self) -> Result<Vec<uuid::Uuid>> {
-        let Self { db, from_sql, join_sql, join_binds, where_sql, binds, order_sql, limit, offset  , .. } = self;
+        let Self { db, from_sql, join_sql, join_binds, where_sql, binds, order_sql, limit, offset , with_deleted, only_deleted , .. } = self;
         let mut where_sql = where_sql;
+        if HAS_SOFT_DELETE {
+            if only_deleted {
+                where_sql.push(format!("{} IS NOT NULL", AdminCol::DeletedAt.as_sql()));
+            } else if !with_deleted {
+                where_sql.push(format!("{} IS NULL", AdminCol::DeletedAt.as_sql()));
+            }
+        }
         let table_name = from_sql.unwrap_or_else(|| "admin".to_string());
         let from_clause = if join_sql.is_empty() { format!("FROM {}", table_name) } else { format!("FROM {} {}", table_name, join_sql.join(" ")) };
         let where_clause = if where_sql.is_empty() { String::new() } else { format!(" WHERE {}", where_sql.join(" AND ")) };
@@ -839,8 +893,15 @@ impl<'db> AdminQuery<'db> {
     }
 
     pub async fn sum(self, col: AdminCol) -> Result<Option<f64>> {
-        let Self { db, from_sql, join_sql, join_binds, where_sql, binds  , .. } = self;
+        let Self { db, from_sql, join_sql, join_binds, where_sql, binds , with_deleted, only_deleted , .. } = self;
         let mut where_sql = where_sql;
+        if HAS_SOFT_DELETE {
+            if only_deleted {
+                where_sql.push(format!("{} IS NOT NULL", AdminCol::DeletedAt.as_sql()));
+            } else if !with_deleted {
+                where_sql.push(format!("{} IS NULL", AdminCol::DeletedAt.as_sql()));
+            }
+        }
         let table_name = from_sql.unwrap_or_else(|| "admin".to_string());
         let from_clause = if join_sql.is_empty() {
             format!("FROM {}", table_name)
@@ -857,8 +918,15 @@ impl<'db> AdminQuery<'db> {
     }
 
     pub async fn avg(self, col: AdminCol) -> Result<Option<f64>> {
-        let Self { db, from_sql, join_sql, join_binds, where_sql, binds  , .. } = self;
+        let Self { db, from_sql, join_sql, join_binds, where_sql, binds , with_deleted, only_deleted , .. } = self;
         let mut where_sql = where_sql;
+        if HAS_SOFT_DELETE {
+            if only_deleted {
+                where_sql.push(format!("{} IS NOT NULL", AdminCol::DeletedAt.as_sql()));
+            } else if !with_deleted {
+                where_sql.push(format!("{} IS NULL", AdminCol::DeletedAt.as_sql()));
+            }
+        }
         let table_name = from_sql.unwrap_or_else(|| "admin".to_string());
         let from_clause = if join_sql.is_empty() {
             format!("FROM {}", table_name)
@@ -875,8 +943,15 @@ impl<'db> AdminQuery<'db> {
     }
 
     pub async fn min_val(self, col: AdminCol) -> Result<Option<i64>> {
-        let Self { db, from_sql, join_sql, join_binds, where_sql, binds  , .. } = self;
+        let Self { db, from_sql, join_sql, join_binds, where_sql, binds , with_deleted, only_deleted , .. } = self;
         let mut where_sql = where_sql;
+        if HAS_SOFT_DELETE {
+            if only_deleted {
+                where_sql.push(format!("{} IS NOT NULL", AdminCol::DeletedAt.as_sql()));
+            } else if !with_deleted {
+                where_sql.push(format!("{} IS NULL", AdminCol::DeletedAt.as_sql()));
+            }
+        }
         let table_name = from_sql.unwrap_or_else(|| "admin".to_string());
         let from_clause = if join_sql.is_empty() {
             format!("FROM {}", table_name)
@@ -893,8 +968,15 @@ impl<'db> AdminQuery<'db> {
     }
 
     pub async fn max_val(self, col: AdminCol) -> Result<Option<i64>> {
-        let Self { db, from_sql, join_sql, join_binds, where_sql, binds  , .. } = self;
+        let Self { db, from_sql, join_sql, join_binds, where_sql, binds , with_deleted, only_deleted , .. } = self;
         let mut where_sql = where_sql;
+        if HAS_SOFT_DELETE {
+            if only_deleted {
+                where_sql.push(format!("{} IS NOT NULL", AdminCol::DeletedAt.as_sql()));
+            } else if !with_deleted {
+                where_sql.push(format!("{} IS NULL", AdminCol::DeletedAt.as_sql()));
+            }
+        }
         let table_name = from_sql.unwrap_or_else(|| "admin".to_string());
         let from_clause = if join_sql.is_empty() {
             format!("FROM {}", table_name)
@@ -913,8 +995,15 @@ impl<'db> AdminQuery<'db> {
     pub async fn paginate(self, page: i64, per_page: i64) -> Result<Page<AdminView>> {
         let page = if page < 1 { 1 } else { page };
         let per_page = resolve_per_page(per_page);
-        let Self { db, base_url, select_sql, from_sql, count_sql, distinct, distinct_on, lock_sql, join_sql, join_binds, where_sql, order_sql, group_by_sql, having_sql, having_binds, offset: _, limit: _, binds , .. } = self;
+        let Self { db, base_url, select_sql, from_sql, count_sql, distinct, distinct_on, lock_sql, join_sql, join_binds, where_sql, order_sql, group_by_sql, having_sql, having_binds, offset: _, limit: _, binds , with_deleted, only_deleted, .. } = self;
         let mut where_sql = where_sql;
+        if HAS_SOFT_DELETE {
+            if only_deleted {
+                where_sql.push(format!("{} IS NOT NULL", AdminCol::DeletedAt.as_sql()));
+            } else if !with_deleted {
+                where_sql.push(format!("{} IS NULL", AdminCol::DeletedAt.as_sql()));
+            }
+        }
         let select_clause = match (distinct, distinct_on.as_ref()) {
             (false, None) => select_sql.unwrap_or_else(|| "*".to_string()),
             (true, None) => format!("DISTINCT {}", select_sql.unwrap_or_else(|| "*".to_string())),
@@ -961,17 +1050,64 @@ impl<'db> AdminQuery<'db> {
         Ok(Page { data, total, per_page, current_page, last_page })
     }
     pub fn into_where_parts(self) -> (Vec<String>, Vec<BindValue>) {
-        let Self { where_sql, binds, .. } = self;
+        let Self { where_sql, binds, with_deleted, only_deleted, .. } = self;
         let mut where_sql = where_sql;
+        if HAS_SOFT_DELETE {
+            if only_deleted {
+                where_sql.push(format!("{} IS NOT NULL", AdminCol::DeletedAt.as_sql()));
+            } else if !with_deleted {
+                where_sql.push(format!("{} IS NULL", AdminCol::DeletedAt.as_sql()));
+            }
+        }
         (where_sql, binds)
     }
     pub async fn delete(self) -> Result<u64> {
         if self.limit.is_some() {
             anyhow::bail!("delete() does not support limit; add where clauses");
         }
-        let Self { db, where_sql, binds, .. } = self;
+        let Self { db, where_sql, binds, with_deleted, only_deleted, .. } = self;
         if where_sql.is_empty() { anyhow::bail!("delete(): no conditions set"); }
+        if HAS_SOFT_DELETE {
+            let mut where_sql = where_sql;
+            if only_deleted {
+                where_sql.push(format!("{} IS NOT NULL", AdminCol::DeletedAt.as_sql()));
+            } else if !with_deleted {
+                where_sql.push(format!("{} IS NULL", AdminCol::DeletedAt.as_sql()));
+            }
+            let idx = binds.len() + 1;
+            let mut sql = format!("UPDATE admin SET {} = ${}", AdminCol::DeletedAt.as_sql(), idx);
+            if !where_sql.is_empty() {
+                sql.push_str(" WHERE ");
+                sql.push_str(&where_sql.join(" AND "));
+            }
+            let mut q = sqlx::query(&sql);
+            for b in binds { q = bind_query(q, b); }
+            q = bind_query(q, time::OffsetDateTime::now_utc().into());
+            let res = db.execute(q).await?;
+            return Ok(res.rows_affected());
+        }
         let mut sql = String::from("DELETE FROM admin");
+        if !where_sql.is_empty() {
+            sql.push_str(" WHERE ");
+            sql.push_str(&where_sql.join(" AND "));
+        }
+        let mut q = sqlx::query(&sql);
+        for b in binds { q = bind_query(q, b); }
+        let res = db.execute(q).await?;
+        Ok(res.rows_affected())
+    }
+    pub async fn restore(self) -> Result<u64> {
+        if !HAS_SOFT_DELETE { anyhow::bail!("restore() not supported"); }
+        if self.limit.is_some() {
+            anyhow::bail!("restore() does not support limit; add where clauses");
+        }
+        let Self { db, where_sql, binds, with_deleted, only_deleted, .. } = self;
+        if where_sql.is_empty() { anyhow::bail!("restore(): no conditions set"); }
+        let mut where_sql = where_sql;
+        if !with_deleted && !only_deleted {
+            where_sql.push(format!("{} IS NOT NULL", AdminCol::DeletedAt.as_sql()));
+        }
+        let mut sql = format!("UPDATE admin SET {} = NULL", AdminCol::DeletedAt.as_sql());
         if !where_sql.is_empty() {
             sql.push_str(" WHERE ");
             sql.push_str(&where_sql.join(" AND "));
@@ -1062,6 +1198,11 @@ impl<'db> AdminInsert<'db> {
     }
     pub fn set_updated_at(mut self, val: time::OffsetDateTime) -> Self {
         self.cols.push(AdminCol::UpdatedAt);
+        self.binds.push(val.into());
+        self
+    }
+    pub fn set_deleted_at(mut self, val: Option<time::OffsetDateTime>) -> Self {
+        self.cols.push(AdminCol::DeletedAt);
         self.binds.push(val.into());
         self
     }
@@ -1191,6 +1332,10 @@ impl<'db> AdminUpdate<'db> {
         self.sets.push((AdminCol::UpdatedAt , val.into()));
         self
     }
+    pub fn set_deleted_at(mut self, val: Option<time::OffsetDateTime>) -> Self {
+        self.sets.push((AdminCol::DeletedAt , val.into()));
+        self
+    }
     pub fn where_id(mut self, op: Op, val: uuid::Uuid) -> Self {
         let idx = self.binds.len() + 1;
         self.where_sql.push(format!("{} {} ${}", AdminCol::Id.as_sql(), op.as_sql(), idx));
@@ -1230,6 +1375,12 @@ impl<'db> AdminUpdate<'db> {
     pub fn where_updated_at(mut self, op: Op, val: time::OffsetDateTime) -> Self {
         let idx = self.binds.len() + 1;
         self.where_sql.push(format!("{} {} ${}", AdminCol::UpdatedAt.as_sql(), op.as_sql(), idx));
+        self.binds.push(val.into());
+        self
+    }
+    pub fn where_deleted_at(mut self, op: Op, val: Option<time::OffsetDateTime>) -> Self {
+        let idx = self.binds.len() + 1;
+        self.where_sql.push(format!("{} {} ${}", AdminCol::DeletedAt.as_sql(), op.as_sql(), idx));
         self.binds.push(val.into());
         self
     }
@@ -1348,6 +1499,7 @@ impl AdminTableAdapter {
             "admin_type" => Some(AdminCol::AdminType),
             "created_at" => Some(AdminCol::CreatedAt),
             "updated_at" => Some(AdminCol::UpdatedAt),
+            "deleted_at" => Some(AdminCol::DeletedAt),
             _ => None,
         }
     }
@@ -1378,6 +1530,7 @@ impl AdminTableAdapter {
             "admin_type" => Some(Self::parse_bind(raw.trim())),
             "created_at" => Self::parse_datetime(raw.trim(), false).map(Into::into),
             "updated_at" => Self::parse_datetime(raw.trim(), false).map(Into::into),
+            "deleted_at" => Self::parse_datetime(raw.trim(), false).map(Into::into),
             _ => None,
         }
     }
@@ -1410,8 +1563,8 @@ impl GeneratedTableAdapter for AdminTableAdapter {
     type Query<'db> = AdminQuery<'db>;
     type Row = AdminView;
     fn model_key(&self) -> &'static str { "Admin" }
-    fn sortable_columns(&self) -> &'static [&'static str] { &["id", "email", "password", "name", "admin_type", "created_at", "updated_at"] }
-    fn timestamp_columns(&self) -> &'static [&'static str] { &["created_at", "updated_at"] }
+    fn sortable_columns(&self) -> &'static [&'static str] { &["id", "email", "password", "name", "admin_type", "created_at", "updated_at", "deleted_at"] }
+    fn timestamp_columns(&self) -> &'static [&'static str] { &["created_at", "updated_at", "deleted_at"] }
     fn column_descriptors(&self) -> &'static [DataTableColumnDescriptor] {
         &[
             DataTableColumnDescriptor { name: "id", data_type: "uuid::Uuid", sortable: true, localized: false, filter_ops: &["eq", "gte", "lte"] },
@@ -1421,6 +1574,7 @@ impl GeneratedTableAdapter for AdminTableAdapter {
             DataTableColumnDescriptor { name: "admin_type", data_type: "AdminType", sortable: true, localized: false, filter_ops: &["eq", "gte", "lte"] },
             DataTableColumnDescriptor { name: "created_at", data_type: "time::OffsetDateTime", sortable: true, localized: false, filter_ops: &["eq", "gte", "lte", "date_from", "date_to"] },
             DataTableColumnDescriptor { name: "updated_at", data_type: "time::OffsetDateTime", sortable: true, localized: false, filter_ops: &["eq", "gte", "lte", "date_from", "date_to"] },
+            DataTableColumnDescriptor { name: "deleted_at", data_type: "Option<time::OffsetDateTime>", sortable: true, localized: false, filter_ops: &["eq", "gte", "lte", "date_from", "date_to"] },
         ]
     }
     fn relation_column_descriptors(&self) -> &'static [DataTableRelationColumnDescriptor] {
@@ -1545,6 +1699,7 @@ impl GeneratedTableAdapter for AdminTableAdapter {
             "admin_type" => query.order_by(AdminCol::AdminType, dir),
             "created_at" => query.order_by(AdminCol::CreatedAt, dir),
             "updated_at" => query.order_by(AdminCol::UpdatedAt, dir),
+            "deleted_at" => query.order_by(AdminCol::DeletedAt, dir),
             _ => query,
         };
         Ok(next)
@@ -1563,6 +1718,7 @@ impl GeneratedTableAdapter for AdminTableAdapter {
             "name" => Some(row.name.clone()),
             "created_at" => row.created_at.format(&time::format_description::well_known::Rfc3339).ok(),
             "updated_at" => row.updated_at.format(&time::format_description::well_known::Rfc3339).ok(),
+            "deleted_at" => row.deleted_at.as_ref().and_then(|v| v.format(&time::format_description::well_known::Rfc3339).ok()),
             _ => None,
         }
     }
@@ -1588,7 +1744,7 @@ impl Default for AdminDataTableConfig {
             default_sorting_column: "id",
             default_sorted: SortDirection::Desc,
             default_export_ignore_columns: &["actions", "action"],
-            default_timestamp_columns: &["created_at", "updated_at"],
+            default_timestamp_columns: &["created_at", "updated_at", "deleted_at"],
             default_unsortable: &[],
             default_row_per_page: None,
         }

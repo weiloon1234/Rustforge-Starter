@@ -1,5 +1,8 @@
 use axum::middleware::from_fn_with_state;
-use core_web::openapi::{aide::axum::routing::get, ApiRouter};
+use core_web::openapi::{
+    aide::axum::routing::get,
+    ApiRouter,
+};
 
 use crate::internal::api::{datatable, state::AppApiState};
 
