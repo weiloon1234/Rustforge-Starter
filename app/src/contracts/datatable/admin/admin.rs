@@ -8,11 +8,9 @@ use core_web::datatable::{
 use core_web::contracts::rustforge_contract;
 use generated::models::{AdminType, AdminView};
 use schemars::JsonSchema;
-use serde::Deserialize;
 use validator::Validate;
 
 #[rustforge_contract]
-#[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminDatatableQueryInput {
     #[serde(default)]
     #[rf(nested)]
@@ -22,7 +20,7 @@ pub struct AdminDatatableQueryInput {
     pub q: Option<String>,
     #[serde(default)]
     #[rf(length(min = 3, max = 64))]
-    #[rf(rule = "alpha_dash")]
+    #[rf(alpha_dash)]
     pub username: Option<String>,
     #[serde(default)]
     #[rf(length(min = 1, max = 120))]
@@ -78,7 +76,6 @@ impl DataTableQueryRequestContract for AdminDatatableQueryInput {
 }
 
 #[rustforge_contract]
-#[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminDatatableEmailExportInput {
     #[rf(nested)]
     pub base: DataTableEmailExportRequestBase,
@@ -87,7 +84,7 @@ pub struct AdminDatatableEmailExportInput {
     pub q: Option<String>,
     #[serde(default)]
     #[rf(length(min = 3, max = 64))]
-    #[rf(rule = "alpha_dash")]
+    #[rf(alpha_dash)]
     pub username: Option<String>,
     #[serde(default)]
     #[rf(length(min = 1, max = 120))]

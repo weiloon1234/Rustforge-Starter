@@ -2,11 +2,10 @@ use crate::contracts::types::username::UsernameString;
 use core_web::contracts::rustforge_contract;
 use generated::{models::AdminType, permissions::Permission};
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use validator::Validate;
 
 #[rustforge_contract]
-#[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct CreateAdminInput {
     #[rf(nested)]
     #[rf(async_unique(table = "admin", column = "username"))]
@@ -24,7 +23,6 @@ pub struct CreateAdminInput {
 }
 
 #[rustforge_contract]
-#[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct UpdateAdminInput {
     #[serde(skip, default)]
     __target_id: i64,

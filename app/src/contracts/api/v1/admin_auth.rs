@@ -1,13 +1,12 @@
 use crate::contracts::types::username::UsernameString;
 use core_web::contracts::rustforge_contract;
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use validator::Validate;
 use core_web::auth::AuthClientType;
 use generated::models::AdminType;
 
 #[rustforge_contract]
-#[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminLoginInput {
     #[rf(nested)]
     pub username: UsernameString,
@@ -19,7 +18,6 @@ pub struct AdminLoginInput {
 }
 
 #[rustforge_contract]
-#[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminRefreshInput {
     pub client_type: AuthClientType,
     #[serde(default)]
@@ -28,7 +26,6 @@ pub struct AdminRefreshInput {
 }
 
 #[rustforge_contract]
-#[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminLogoutInput {
     pub client_type: AuthClientType,
     #[serde(default)]
@@ -37,7 +34,6 @@ pub struct AdminLogoutInput {
 }
 
 #[rustforge_contract]
-#[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminProfileUpdateInput {
     #[rf(length(min = 1, max = 120))]
     pub name: String,
@@ -47,7 +43,6 @@ pub struct AdminProfileUpdateInput {
 }
 
 #[rustforge_contract]
-#[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminPasswordUpdateInput {
     #[rf(length(min = 8, max = 128))]
     pub current_password: String,
