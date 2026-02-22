@@ -34,8 +34,8 @@ cargo build -p generated
 4. Build migration files and run them:
 
 ```bash
-./bin/console migrate pump
-./bin/console migrate run
+./console migrate pump
+./console migrate run
 ```
 
 5. Start services:
@@ -54,8 +54,8 @@ make check
 make run-api
 make run-ws
 make run-worker
-make migrate-pump
-make migrate-run
+./console migrate pump
+./console migrate run
 make server-install
 make server-update
 make framework-docs-build
@@ -108,7 +108,7 @@ This starter owns translation files.
 3. Publish files into `PUBLIC_PATH`:
 
 ```bash
-./bin/console assets publish --from frontend/dist --clean
+./console assets publish --from frontend/dist --clean
 ```
 
 When `PUBLIC_PATH/index.html` exists, API server serves that folder at `/` with SPA fallback.

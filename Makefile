@@ -53,19 +53,19 @@ run-worker:
 
 .PHONY: console
 console:
-	./bin/console $(CMD)
+	./console $(CMD)
 
 .PHONY: route-list
 route-list:
-	./bin/console route list
+	./console route list
 
 .PHONY: migrate-pump
 migrate-pump:
-	./bin/console migrate pump
+	./console migrate pump
 
 .PHONY: migrate-run
 migrate-run:
-	./bin/console migrate run
+	./console migrate run
 
 .PHONY: server-install
 server-install:
@@ -77,7 +77,7 @@ server-update:
 
 .PHONY: assets-publish
 assets-publish:
-	./bin/console assets publish $(ASSETS_ARGS)
+	./console assets publish $(ASSETS_ARGS)
 
 .PHONY: framework-docs-build
 framework-docs-build:
