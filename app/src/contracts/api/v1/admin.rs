@@ -1,48 +1,58 @@
+use crate::contracts::types::username::UsernameString;
+use core_web::contracts::rustforge_contract;
 use generated::{models::AdminType, permissions::Permission};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
+#[rustforge_contract]
 #[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct CreateAdminInput {
-    #[validate(custom(function = "crate::validation::username::validate_username"))]
-    #[validate(length(min = 3, max = 64))]
-    #[schemars(length(min = 3, max = 64))]
-    pub username: String,
+    #[rf(nested)]
+    #[rf(async_unique(table = "admin", column = "username"))]
+    pub username: UsernameString,
     #[serde(default)]
-    #[validate(email)]
-    #[schemars(email)]
+    #[rf(email)]
     pub email: Option<String>,
-    #[validate(length(min = 1, max = 120))]
-    #[schemars(length(min = 1, max = 120))]
+    #[rf(length(min = 1, max = 120))]
     pub name: String,
     pub admin_type: AdminType,
-    #[validate(length(min = 8, max = 128))]
-    #[schemars(length(min = 8, max = 128))]
+    #[rf(length(min = 8, max = 128))]
     pub password: String,
     #[serde(default)]
     pub abilities: Vec<Permission>,
 }
 
+#[rustforge_contract]
 #[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct UpdateAdminInput {
+    #[serde(skip, default)]
+    __target_id: i64,
     #[serde(default)]
-    #[validate(custom(function = "crate::validation::username::validate_username"))]
-    #[validate(length(min = 3, max = 64))]
-    #[schemars(length(min = 3, max = 64))]
-    pub username: Option<String>,
+    #[rf(nested)]
+    #[rf(async_unique(
+        table = "admin",
+        column = "username",
+        ignore(column = "id", field = "__target_id")
+    ))]
+    pub username: Option<UsernameString>,
     #[serde(default)]
-    #[validate(email)]
-    #[schemars(email)]
+    #[rf(email)]
     pub email: Option<String>,
     #[serde(default)]
-    #[validate(length(min = 1, max = 120))]
-    #[schemars(length(min = 1, max = 120))]
+    #[rf(length(min = 1, max = 120))]
     pub name: Option<String>,
     #[serde(default)]
     pub admin_type: Option<AdminType>,
     #[serde(default)]
     pub abilities: Option<Vec<Permission>>,
+}
+
+impl UpdateAdminInput {
+    pub fn with_target_id(mut self, id: i64) -> Self {
+        self.__target_id = id;
+        self
+    }
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]

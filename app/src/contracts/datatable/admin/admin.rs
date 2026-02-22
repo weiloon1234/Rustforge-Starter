@@ -3,29 +3,29 @@ use std::collections::BTreeMap;
 use core_datatable::DataTableInput;
 use core_web::datatable::{
     DataTableEmailExportRequestBase, DataTableFilterFieldDto, DataTableFilterFieldType,
-    DataTableFilterOptionDto, DataTableQueryRequestBase, DataTableScopedContract,
+    DataTableQueryRequestBase, DataTableQueryRequestContract, DataTableScopedContract,
 };
+use core_web::contracts::rustforge_contract;
 use generated::models::{AdminType, AdminView};
 use schemars::JsonSchema;
 use serde::Deserialize;
 use validator::Validate;
 
+#[rustforge_contract]
 #[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminDatatableQueryInput {
     #[serde(default)]
-    #[validate(nested)]
+    #[rf(nested)]
     pub base: DataTableQueryRequestBase,
     #[serde(default)]
-    #[validate(length(min = 1, max = 120))]
-    #[schemars(length(min = 1, max = 120))]
+    #[rf(length(min = 1, max = 120))]
     pub q: Option<String>,
     #[serde(default)]
-    #[validate(length(min = 3, max = 64))]
-    #[schemars(length(min = 3, max = 64))]
+    #[rf(length(min = 3, max = 64))]
+    #[rf(rule = "alpha_dash")]
     pub username: Option<String>,
     #[serde(default)]
-    #[validate(length(min = 1, max = 120))]
-    #[schemars(length(min = 1, max = 120))]
+    #[rf(length(min = 1, max = 120))]
     pub email: Option<String>,
     #[serde(default)]
     pub admin_type: Option<AdminType>,
@@ -67,21 +67,30 @@ impl AdminDatatableQueryInput {
     }
 }
 
+impl DataTableQueryRequestContract for AdminDatatableQueryInput {
+    fn query_base(&self) -> &DataTableQueryRequestBase {
+        &self.base
+    }
+
+    fn datatable_query_to_input(&self) -> DataTableInput {
+        self.to_input()
+    }
+}
+
+#[rustforge_contract]
 #[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminDatatableEmailExportInput {
-    #[validate(nested)]
+    #[rf(nested)]
     pub base: DataTableEmailExportRequestBase,
     #[serde(default)]
-    #[validate(length(min = 1, max = 120))]
-    #[schemars(length(min = 1, max = 120))]
+    #[rf(length(min = 1, max = 120))]
     pub q: Option<String>,
     #[serde(default)]
-    #[validate(length(min = 3, max = 64))]
-    #[schemars(length(min = 3, max = 64))]
+    #[rf(length(min = 3, max = 64))]
+    #[rf(rule = "alpha_dash")]
     pub username: Option<String>,
     #[serde(default)]
-    #[validate(length(min = 1, max = 120))]
-    #[schemars(length(min = 1, max = 120))]
+    #[rf(length(min = 1, max = 120))]
     pub email: Option<String>,
     #[serde(default)]
     pub admin_type: Option<AdminType>,
@@ -140,10 +149,6 @@ impl DataTableScopedContract for AdminAdminDataTableContract {
         "Admin Account"
     }
 
-    fn query_to_input(&self, req: &Self::QueryRequest) -> DataTableInput {
-        req.to_input()
-    }
-
     fn email_to_input(&self, req: &Self::EmailRequest) -> DataTableInput {
         req.to_input()
     }
@@ -158,10 +163,6 @@ impl DataTableScopedContract for AdminAdminDataTableContract {
 
     fn export_file_name(&self, req: &Self::EmailRequest) -> Option<String> {
         req.base.export_file_name.clone()
-    }
-
-    fn include_meta(&self, req: &Self::QueryRequest) -> bool {
-        req.base.include_meta
     }
 
     fn filter_rows(&self) -> Vec<Vec<DataTableFilterFieldDto>> {
@@ -202,15 +203,7 @@ impl DataTableScopedContract for AdminAdminDataTableContract {
                 label: "Admin Type".to_string(),
                 placeholder: Some("Choose type".to_string()),
                 description: None,
-                options: Some(
-                    AdminType::variants()
-                        .iter()
-                        .map(|ty| DataTableFilterOptionDto {
-                            label: ty.as_str().to_string(),
-                            value: ty.as_str().to_string(),
-                        })
-                        .collect(),
-                ),
+                options: Some(AdminType::datatable_filter_options()),
             }],
         ]
     }

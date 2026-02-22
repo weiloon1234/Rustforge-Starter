@@ -27,6 +27,19 @@ impl AdminType {
     pub const fn variants() -> &'static [Self] {
         &[Self::Developer, Self::SuperAdmin, Self::Admin]
     }
+
+    pub fn datatable_filter_options() -> Vec<core_web::datatable::DataTableFilterOptionDto> {
+        Self::variants()
+            .iter()
+            .map(|v| {
+                let s = (*v).as_str();
+                core_web::datatable::DataTableFilterOptionDto {
+                    label: s.to_string(),
+                    value: s.to_string(),
+                }
+            })
+            .collect()
+    }
 }
 
 // sqlx support for TEXT storage

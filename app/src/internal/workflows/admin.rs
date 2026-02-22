@@ -5,7 +5,7 @@ use core_i18n::t;
 use core_web::{auth::AuthUser, error::AppError};
 use generated::{
     guards::AdminGuard,
-    models::{Admin, AdminQuery, AdminType, AdminView},
+    models::{Admin, AdminType, AdminView},
     permissions::Permission,
 };
 
@@ -28,7 +28,6 @@ pub async fn create(
     req: CreateAdminInput,
 ) -> Result<AdminView, AppError> {
     let username = req.username.trim().to_ascii_lowercase();
-    ensure_username_available(&state.db, &username, None).await?;
 
     let abilities = ensure_assignable_permissions(auth, &req.abilities)?;
 
@@ -67,7 +66,6 @@ pub async fn update(
     if let Some(username) = req.username {
         let username = username.trim().to_ascii_lowercase();
         if username != existing.username {
-            ensure_username_available(&state.db, &username, Some(id)).await?;
             update = update.set_username(username);
             touched = true;
         }
@@ -123,22 +121,6 @@ pub async fn remove(
         .map_err(AppError::from)?;
     if affected == 0 {
         return Err(AppError::NotFound(t("Admin not found")));
-    }
-    Ok(())
-}
-
-async fn ensure_username_available(
-    db: &sqlx::PgPool,
-    username: &str,
-    exclude_id: Option<i64>,
-) -> Result<(), AppError> {
-    let mut query = AdminQuery::new(DbConn::pool(db), None).where_username(Op::Eq, username.to_string());
-    if let Some(id) = exclude_id {
-        query = query.where_id(Op::Ne, id);
-    }
-    let exists = query.first().await.map_err(AppError::from)?.is_some();
-    if exists {
-        return Err(AppError::BadRequest(t("Username is already taken")));
     }
     Ok(())
 }

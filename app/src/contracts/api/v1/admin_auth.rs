@@ -1,63 +1,60 @@
+use crate::contracts::types::username::UsernameString;
+use core_web::contracts::rustforge_contract;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 use core_web::auth::AuthClientType;
 use generated::models::AdminType;
 
+#[rustforge_contract]
 #[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminLoginInput {
-    #[validate(custom(function = "crate::validation::username::validate_username"))]
-    #[validate(length(min = 3, max = 64))]
-    #[schemars(length(min = 3, max = 64))]
-    pub username: String,
+    #[rf(nested)]
+    pub username: UsernameString,
 
-    #[validate(length(min = 8, max = 128))]
-    #[schemars(length(min = 8, max = 128))]
+    #[rf(length(min = 8, max = 128))]
     pub password: String,
 
     pub client_type: AuthClientType,
 }
 
+#[rustforge_contract]
 #[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminRefreshInput {
     pub client_type: AuthClientType,
     #[serde(default)]
-    #[validate(length(min = 1, max = 256))]
-    #[schemars(length(min = 1, max = 256))]
+    #[rf(length(min = 1, max = 256))]
     pub refresh_token: Option<String>,
 }
 
+#[rustforge_contract]
 #[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminLogoutInput {
     pub client_type: AuthClientType,
     #[serde(default)]
-    #[validate(length(min = 1, max = 256))]
-    #[schemars(length(min = 1, max = 256))]
+    #[rf(length(min = 1, max = 256))]
     pub refresh_token: Option<String>,
 }
 
+#[rustforge_contract]
 #[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminProfileUpdateInput {
-    #[validate(length(min = 1, max = 120))]
-    #[schemars(length(min = 1, max = 120))]
+    #[rf(length(min = 1, max = 120))]
     pub name: String,
     #[serde(default)]
-    #[validate(email)]
-    #[schemars(email)]
+    #[rf(email)]
     pub email: Option<String>,
 }
 
+#[rustforge_contract]
 #[derive(Debug, Clone, Deserialize, Validate, JsonSchema)]
 pub struct AdminPasswordUpdateInput {
-    #[validate(length(min = 8, max = 128))]
-    #[schemars(length(min = 8, max = 128))]
+    #[rf(length(min = 8, max = 128))]
     pub current_password: String,
-    #[validate(length(min = 8, max = 128))]
-    #[validate(must_match(other = "password_confirmation"))]
-    #[schemars(length(min = 8, max = 128))]
+    #[rf(length(min = 8, max = 128))]
+    #[rf(must_match(other = "password_confirmation"))]
     pub password: String,
-    #[validate(length(min = 8, max = 128))]
-    #[schemars(length(min = 8, max = 128))]
+    #[rf(length(min = 8, max = 128))]
     pub password_confirmation: String,
 }
 

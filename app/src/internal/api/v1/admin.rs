@@ -3,8 +3,9 @@ use core_i18n::t;
 use core_web::{
     auth::AuthUser,
     authz::PermissionMode,
-    contracts::ContractJson,
+    contracts::{AsyncContractJson, ContractJson},
     error::AppError,
+    extract::{validation::transform_validation_errors, AsyncValidate},
     openapi::{
         with_permission_check_delete_with, with_permission_check_get_with,
         with_permission_check_patch_with, with_permission_check_post_with, ApiRouter,
@@ -71,7 +72,7 @@ async fn detail(
 async fn create(
     State(state): State<AppApiState>,
     auth: AuthUser<AdminGuard>,
-    req: ContractJson<CreateAdminInput>,
+    req: AsyncContractJson<CreateAdminInput>,
 ) -> Result<ApiResponse<AdminOutput>, AppError> {
     let admin = workflow::create(&state, &auth, req.0).await?;
     Ok(ApiResponse::success(AdminOutput::from(admin), &t("Admin created")))
@@ -83,7 +84,8 @@ async fn update(
     Path(id): Path<i64>,
     req: ContractJson<UpdateAdminInput>,
 ) -> Result<ApiResponse<AdminOutput>, AppError> {
-    let admin = workflow::update(&state, &auth, id, req.0).await?;
+    let req = validate_update_input(&state, id, req.0).await?;
+    let admin = workflow::update(&state, &auth, id, req).await?;
     Ok(ApiResponse::success(AdminOutput::from(admin), &t("Admin updated")))
 }
 
@@ -97,4 +99,19 @@ async fn remove(
         AdminDeleteOutput { deleted: true },
         &t("Admin deleted"),
     ))
+}
+
+async fn validate_update_input(
+    state: &AppApiState,
+    id: i64,
+    req: UpdateAdminInput,
+) -> Result<UpdateAdminInput, AppError> {
+    let req = req.with_target_id(id);
+    if let Err(e) = req.validate_async(&state.db).await {
+        return Err(AppError::Validation {
+            message: t("Validation failed"),
+            errors: transform_validation_errors(e),
+        });
+    }
+    Ok(req)
 }
