@@ -35,6 +35,7 @@ help:
 	@echo "  make framework-docs-build"
 	@echo "  make check"
 	@echo "  make gen"
+	@echo "  make gen-types            # Regenerate frontend TS types from Rust contracts"
 
 .PHONY: install-tools
 install-tools:
@@ -49,23 +50,27 @@ dev-api:
 	@command -v cargo-watch >/dev/null 2>&1 || (echo "cargo-watch not found. Run: make install-tools" && exit 1)
 	RUN_WORKER=true cargo watch -x "run -p app --bin api-server"
 
+.PHONY: ensure-frontend-deps
+ensure-frontend-deps:
+	@test -d frontend/node_modules || (echo "Installing frontend dependencies..." && npm --prefix frontend install)
+
 .PHONY: dev-user
-dev-user:
+dev-user: ensure-frontend-deps
 	npm --prefix frontend run dev:user
 
 .PHONY: dev-admin
-dev-admin:
+dev-admin: ensure-frontend-deps
 	npm --prefix frontend run dev:admin
 
 .PHONY: dev-frontend
-dev-frontend:
+dev-frontend: ensure-frontend-deps
 	@trap 'kill 0' EXIT; \
 	npm --prefix frontend run dev:user & \
 	npm --prefix frontend run dev:admin & \
 	wait
 
 .PHONY: dev
-dev:
+dev: ensure-frontend-deps
 	@command -v cargo-watch >/dev/null 2>&1 || (echo "cargo-watch not found. Run: make install-tools" && exit 1)
 	@trap 'kill 0' EXIT; \
 	RUN_WORKER=true cargo watch -x "run -p app --bin api-server" & \
@@ -74,7 +79,7 @@ dev:
 	wait
 
 .PHONY: build-frontend
-build-frontend:
+build-frontend: ensure-frontend-deps
 	npm --prefix frontend run build
 
 .PHONY: run-api
@@ -129,6 +134,12 @@ framework-docs-build:
 check:
 	cargo check --workspace
 
+.PHONY: gen-types
+gen-types:
+	cargo run -p app --bin export-types
+	@echo "TypeScript types regenerated in frontend/src/"
+
 .PHONY: gen
 gen:
 	cargo build -p generated
+	$(MAKE) gen-types

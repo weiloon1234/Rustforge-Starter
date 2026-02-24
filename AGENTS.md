@@ -288,10 +288,11 @@ Admin is mounted first so `/admin/*` is matched before the catch-all user SPA.
 1. Schema → `app/schemas/{domain}.toml`
 2. Migration → `migrations/{number}_{name}.sql`
 3. Permissions → `app/permissions.toml`
-4. Contracts → `app/src/contracts/api/v1/{domain}.rs`
+4. Contracts → `app/src/contracts/api/v1/{domain}.rs` (add `#[derive(TS)]` for frontend types)
 5. Workflow → `app/src/internal/workflows/{domain}.rs`
 6. Handler → `app/src/internal/api/v1/{domain}.rs`
 7. Wire routes → `app/src/internal/api/v1/mod.rs`
 8. Module declarations → add `mod`/`pub mod` in relevant `mod.rs`
 9. Translations → add keys to all `i18n/*.json` files
 10. `cargo check` to trigger code generation
+11. Run `make gen-types` to regenerate frontend TypeScript types from contracts

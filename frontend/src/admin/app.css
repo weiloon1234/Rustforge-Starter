@@ -2,8 +2,95 @@
 
 @theme {
   --color-background: #0f172a;
-  --color-foreground: #f8fafc;
+  --color-foreground: #f1f5f9;
   --color-muted: #94a3b8;
+  --color-muted-foreground: #64748b;
+  --color-surface: #1e293b;
+  --color-surface-hover: #334155;
+  --color-surface-active: #475569;
   --color-primary: #8b5cf6;
+  --color-primary-hover: #7c3aed;
   --color-primary-foreground: #ffffff;
+  --color-border: #334155;
+  --color-border-hover: #475569;
+  --color-input: #1e293b;
+  --color-input-border: #334155;
+  --color-input-border-hover: #475569;
+  --color-input-focus: #8b5cf6;
+  --color-input-placeholder: #64748b;
+  --color-input-disabled: #1a2332;
+  --color-ring: #8b5cf6;
+  --color-error: #ef4444;
+  --color-error-muted: #7f1d1d;
+  --color-warning: #f59e0b;
+  --color-warning-muted: #78350f;
+  --color-success: #22c55e;
+  --color-success-muted: #14532d;
+  --color-info: #3b82f6;
+  --color-info-muted: #1e3a5f;
+}
+
+@layer components {
+  .rf-field { @apply mb-4; }
+  .rf-label { @apply block mb-1.5 text-sm font-medium text-foreground; }
+  .rf-label-required::after { content: " *"; @apply text-error; }
+
+  .rf-input {
+    @apply w-full rounded-lg border border-input-border bg-input px-3 py-2 text-sm text-foreground
+      placeholder:text-input-placeholder transition-colors duration-150
+      hover:border-input-border-hover focus:outline-none focus:ring-2 focus:ring-ring/40
+      focus:border-input-focus disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .rf-input-error {
+    @apply border-error hover:border-error focus:ring-error/40 focus:border-error;
+  }
+
+  .rf-textarea {
+    @apply w-full rounded-lg border border-input-border bg-input px-3 py-2 text-sm text-foreground
+      placeholder:text-input-placeholder transition-colors duration-150
+      hover:border-input-border-hover focus:outline-none focus:ring-2 focus:ring-ring/40
+      focus:border-input-focus disabled:opacity-50 disabled:cursor-not-allowed resize-y min-h-20;
+  }
+  .rf-textarea-error {
+    @apply border-error hover:border-error focus:ring-error/40 focus:border-error;
+  }
+
+  .rf-select {
+    @apply w-full rounded-lg border border-input-border bg-input px-3 py-2 pr-10 text-sm text-foreground
+      transition-colors duration-150 hover:border-input-border-hover focus:outline-none focus:ring-2
+      focus:ring-ring/40 focus:border-input-focus disabled:opacity-50 disabled:cursor-not-allowed
+      appearance-none bg-no-repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+  }
+  .rf-select-error {
+    @apply border-error hover:border-error focus:ring-error/40 focus:border-error;
+  }
+  .rf-select-placeholder { @apply text-input-placeholder; }
+
+  .rf-checkbox-wrapper { @apply flex items-start gap-2; }
+  .rf-checkbox {
+    @apply mt-0.5 h-4 w-4 shrink-0 rounded border border-input-border bg-input
+      transition-colors duration-150 hover:border-input-border-hover focus:outline-none
+      focus:ring-2 focus:ring-ring/40 focus:ring-offset-0 disabled:opacity-50
+      disabled:cursor-not-allowed;
+    accent-color: var(--color-primary);
+  }
+  .rf-checkbox-error { @apply border-error; }
+  .rf-checkbox-label { @apply text-sm text-foreground select-none; }
+
+  .rf-radio-group { @apply flex flex-col gap-2; }
+  .rf-radio-wrapper { @apply flex items-center gap-2; }
+  .rf-radio {
+    @apply h-4 w-4 shrink-0 border border-input-border bg-input transition-colors duration-150
+      hover:border-input-border-hover focus:outline-none focus:ring-2 focus:ring-ring/40
+      focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed;
+    accent-color: var(--color-primary);
+  }
+  .rf-radio-error { @apply border-error; }
+  .rf-radio-label { @apply text-sm text-foreground select-none; }
+
+  .rf-error-message { @apply mt-1 text-xs text-error; }
+  .rf-note { @apply mt-1 text-xs text-muted; }
 }

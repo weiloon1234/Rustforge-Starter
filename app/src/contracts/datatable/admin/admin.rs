@@ -7,13 +7,16 @@ use core_web::datatable::{
 };
 use core_web::contracts::rustforge_contract;
 use generated::models::{AdminType, AdminView};
-use schemars::JsonSchema;
+use ts_rs::TS;
 use validator::Validate;
 
 #[rustforge_contract]
+#[derive(TS)]
+#[ts(export, export_to = "admin/types/")]
 pub struct AdminDatatableQueryInput {
     #[serde(default)]
     #[rf(nested)]
+    #[ts(type = "DataTableQueryRequestBase")]
     pub base: DataTableQueryRequestBase,
     #[serde(default)]
     #[rf(length(min = 1, max = 120))]
@@ -26,6 +29,7 @@ pub struct AdminDatatableQueryInput {
     #[rf(length(min = 1, max = 120))]
     pub email: Option<String>,
     #[serde(default)]
+    #[ts(type = "AdminType | null")]
     pub admin_type: Option<AdminType>,
 }
 
@@ -76,8 +80,11 @@ impl DataTableQueryRequestContract for AdminDatatableQueryInput {
 }
 
 #[rustforge_contract]
+#[derive(TS)]
+#[ts(export, export_to = "admin/types/")]
 pub struct AdminDatatableEmailExportInput {
     #[rf(nested)]
+    #[ts(type = "DataTableEmailExportRequestBase")]
     pub base: DataTableEmailExportRequestBase,
     #[serde(default)]
     #[rf(length(min = 1, max = 120))]
@@ -90,6 +97,7 @@ pub struct AdminDatatableEmailExportInput {
     #[rf(length(min = 1, max = 120))]
     pub email: Option<String>,
     #[serde(default)]
+    #[ts(type = "AdminType | null")]
     pub admin_type: Option<AdminType>,
 }
 

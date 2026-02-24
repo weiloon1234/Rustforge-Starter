@@ -122,3 +122,75 @@ Use as field type with `#[rf(nested)]`:
 #[rf(nested)]
 pub email: EmailAddress,
 ```
+
+## TypeScript Type Generation
+
+Contract structs are auto-exported to TypeScript via `ts-rs`. Add `#[derive(TS)]` alongside existing derives.
+
+### Input structs (with `#[rustforge_contract]`)
+
+```rust
+use ts_rs::TS;
+
+#[rustforge_contract]
+#[derive(TS)]
+#[ts(export, export_to = "admin/types/")]
+pub struct CreateArticleInput {
+    #[rf(length(min = 1, max = 255))]
+    pub title: String,
+
+    #[ts(type = "ArticleStatus")]           // generated enum — override type
+    pub status: ArticleStatus,
+
+    #[ts(type = "string")]                  // newtype wrapper — flatten to string
+    #[rf(nested)]
+    pub slug: SlugString,
+
+    #[serde(default)]
+    pub tags: Vec<String>,                  // ts-rs handles Vec<String> natively
+}
+```
+
+### Output structs
+
+```rust
+#[derive(Debug, Clone, Serialize, JsonSchema, TS)]
+#[ts(export, export_to = "admin/types/")]
+pub struct ArticleOutput {
+    pub id: i64,
+    pub title: String,
+    #[ts(type = "string")]                  // OffsetDateTime → string
+    #[schemars(with = "String")]
+    pub created_at: time::OffsetDateTime,
+}
+```
+
+### Registering in `export-types.rs`
+
+After adding `#[derive(TS)]` to your structs, register them in `app/src/bin/export-types.rs`:
+
+```rust
+// Add a new TsFile block:
+{
+    use app::contracts::api::v1::article::*;
+    files.push(TsFile {
+        rel_path: "admin/types/article.ts",
+        imports: &["import type { ArticleStatus } from \"./enums\";"],
+        definitions: vec![
+            CreateArticleInput::export_to_string().expect("CreateArticleInput"),
+            ArticleOutput::export_to_string().expect("ArticleOutput"),
+        ],
+    });
+}
+```
+
+Then update the barrel `frontend/src/admin/types/index.ts` to re-export and run `make gen-types`.
+
+### Conventions
+
+- Only **serde-visible** fields are exported (fields with `#[serde(skip)]` are excluded)
+- Use `#[ts(type = "TypeName")]` for types that don't derive `TS` (generated enums, framework types, newtypes)
+- Use `#[ts(type = "string")]` for `time::OffsetDateTime` and string newtypes
+- `Option<T>` becomes `T | null` automatically
+- `Vec<T>` becomes `T[]` automatically
+- `#[serde(default)]` fields become optional in TypeScript (with `serde-compat` feature)

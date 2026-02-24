@@ -58,6 +58,12 @@ impl core_web::auth::AuthState for AppApiState {
     }
 }
 
+impl core_web::extract::GetDb for AppApiState {
+    fn db(&self) -> &sqlx::PgPool {
+        &self.db
+    }
+}
+
 fn map_unknown_filter_mode(mode: ConfigUnknownFilterMode) -> DataTableUnknownFilterMode {
     match mode {
         ConfigUnknownFilterMode::Ignore => DataTableUnknownFilterMode::Ignore,
