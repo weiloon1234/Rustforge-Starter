@@ -15,7 +15,13 @@ FRAMEWORK_DOCS_DIR := $(PUBLIC_PATH)/$(FRAMEWORK_DOCS_ROUTE)
 help:
 	@echo "Starter Makefile"
 	@echo "--------------"
-	@echo "  make dev"
+	@echo "  make dev                 # Rust API + all Vite portals"
+	@echo "  make dev-api             # Rust API only (cargo-watch)"
+	@echo "  make dev-frontend        # All Vite portals"
+	@echo "  make dev-user            # Vite user portal only"
+	@echo "  make dev-admin           # Vite admin portal only"
+	@echo "  make install-frontend    # npm install for frontend"
+	@echo "  make build-frontend      # Production build all portals"
 	@echo "  make run-api"
 	@echo "  make run-ws"
 	@echo "  make run-worker"
@@ -34,10 +40,42 @@ help:
 install-tools:
 	@command -v cargo-watch >/dev/null 2>&1 || cargo install cargo-watch
 
+.PHONY: install-frontend
+install-frontend:
+	npm --prefix frontend install
+
+.PHONY: dev-api
+dev-api:
+	@command -v cargo-watch >/dev/null 2>&1 || (echo "cargo-watch not found. Run: make install-tools" && exit 1)
+	RUN_WORKER=true cargo watch -x "run -p app --bin api-server"
+
+.PHONY: dev-user
+dev-user:
+	npm --prefix frontend run dev:user
+
+.PHONY: dev-admin
+dev-admin:
+	npm --prefix frontend run dev:admin
+
+.PHONY: dev-frontend
+dev-frontend:
+	@trap 'kill 0' EXIT; \
+	npm --prefix frontend run dev:user & \
+	npm --prefix frontend run dev:admin & \
+	wait
+
 .PHONY: dev
 dev:
 	@command -v cargo-watch >/dev/null 2>&1 || (echo "cargo-watch not found. Run: make install-tools" && exit 1)
-	RUN_WORKER=true cargo watch -x "run -p app --bin api-server"
+	@trap 'kill 0' EXIT; \
+	RUN_WORKER=true cargo watch -x "run -p app --bin api-server" & \
+	npm --prefix frontend run dev:user & \
+	npm --prefix frontend run dev:admin & \
+	wait
+
+.PHONY: build-frontend
+build-frontend:
+	npm --prefix frontend run build
 
 .PHONY: run-api
 run-api:

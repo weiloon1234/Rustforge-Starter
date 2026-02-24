@@ -13,6 +13,7 @@ logs/
 .vscode/
 node_modules/
 **/node_modules/
+frontend/dist/
 
 # Keep the directory, ignore generated static files by default.
 public/*

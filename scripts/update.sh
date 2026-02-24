@@ -98,6 +98,10 @@ fi
 
 run_as_project_user "source \"\$HOME/.cargo/env\" >/dev/null 2>&1 || true; cd \"${PROJECT_DIR}\" && cargo build --release --workspace"
 
+if [[ -f "${PROJECT_DIR}/frontend/package.json" ]]; then
+    run_as_project_user "cd \"${PROJECT_DIR}\" && npm --prefix frontend install && npm --prefix frontend run build"
+fi
+
 if [[ "${RUN_MIGRATIONS}" == "true" ]]; then
     run_as_project_user "cd \"${PROJECT_DIR}\" && ./console migrate run"
 fi

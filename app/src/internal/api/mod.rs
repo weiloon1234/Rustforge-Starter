@@ -12,6 +12,7 @@ use core_web::openapi::{
     },
     ApiRouter,
 };
+use tower_http::services::{ServeDir, ServeFile};
 
 use state::AppApiState;
 
@@ -47,6 +48,18 @@ pub async fn build_router(ctx: BootContext) -> anyhow::Result<Router> {
     }
 
     let public_path = core_web::static_assets::public_path_from_env();
+
+    // Admin SPA: /admin/* → public/admin/index.html
+    let admin_public = public_path.join("admin");
+    let admin_index = admin_public.join("index.html");
+    if admin_public.is_dir() && admin_index.is_file() {
+        router = router.nest_service(
+            "/admin",
+            ServeDir::new(&admin_public).fallback(ServeFile::new(&admin_index)),
+        );
+    }
+
+    // User SPA: everything else → public/index.html (existing logic)
     if let Some(static_router) = core_web::static_assets::static_assets_router(&public_path) {
         router = router.merge(static_router);
     } else {
