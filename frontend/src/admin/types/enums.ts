@@ -1,4 +1,4 @@
-export type AdminType = "Developer" | "SuperAdmin" | "Admin";
+export type AdminType = "developer" | "superadmin" | "admin";
 
 export type Permission = "admin.read" | "admin.manage";
 

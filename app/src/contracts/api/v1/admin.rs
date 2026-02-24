@@ -74,6 +74,7 @@ pub struct AdminOutput {
     #[ts(type = "AdminType")]
     pub admin_type: AdminType,
     #[serde(default)]
+    #[ts(type = "Permission[]")]
     pub abilities: Vec<String>,
     #[schemars(with = "String")]
     #[ts(type = "string")]
