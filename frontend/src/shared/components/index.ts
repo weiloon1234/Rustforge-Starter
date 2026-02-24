@@ -12,3 +12,6 @@ export type { CheckboxProps } from "./Checkbox";
 
 export { Radio } from "./Radio";
 export type { RadioProps, RadioOption } from "./Radio";
+
+export { useAutoForm } from "../useAutoForm";
+export type { FieldDef, AutoFormConfig, AutoFormErrors, AutoFormResult } from "../useAutoForm";

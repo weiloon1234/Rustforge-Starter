@@ -93,4 +93,5 @@
 
   .rf-error-message { @apply mt-1 text-xs text-error; }
   .rf-note { @apply mt-1 text-xs text-muted; }
+  .rf-form-grid { @apply grid grid-cols-2 gap-x-4; }
 }
