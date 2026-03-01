@@ -47,6 +47,7 @@ export interface DataTableFilterFieldDto {
 
 export interface DataTableColumnMetaDto {
   name: string;
+  label: string;
   data_type: string;
   sortable: boolean;
   localized: boolean;
@@ -81,7 +82,7 @@ export interface DataTableMetaDto {
   defaults: DataTableDefaultsDto;
   columns: DataTableColumnMetaDto[];
   relation_columns: DataTableRelationColumnMetaDto[];
-  filter_rows: DataTableFilterFieldDto[][];
+  filter_rows: (DataTableFilterFieldDto | DataTableFilterFieldDto[])[];
 }
 
 export interface DataTableQueryResponse<T> {

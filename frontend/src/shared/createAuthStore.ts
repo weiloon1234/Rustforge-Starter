@@ -13,6 +13,7 @@ export interface AuthState<A extends Account = Account> {
   isLoading: boolean;
   isInitialized: boolean;
   error: string | null;
+  setToken: (token: string) => void;
   login: (credentials: Record<string, unknown>) => Promise<void>;
   logout: () => void;
   fetchAccount: () => Promise<void>;
@@ -61,6 +62,9 @@ export function createAuthStore<A extends Account = Account>(
         isLoading: false,
         isInitialized: false,
         error: null,
+
+        setToken: (token: string) =>
+          set({ token } as Partial<AuthState<A>>),
 
         login: async (credentials: Record<string, unknown>) => {
           set({ isLoading: true, error: null } as Partial<AuthState<A>>);

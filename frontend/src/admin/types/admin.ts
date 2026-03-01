@@ -1,10 +1,9 @@
-import type { AdminType, Permission } from "./enums";
+import type { AdminType, Permission } from "@admin/types/enums";
 
 export interface CreateAdminInput {
   username: string;
   email?: string | null;
   name: string;
-  admin_type: AdminType;
   password: string;
   abilities?: Permission[];
 }
@@ -13,7 +12,6 @@ export interface UpdateAdminInput {
   username?: string | null;
   email?: string | null;
   name?: string | null;
-  admin_type?: AdminType | null;
   abilities?: Permission[] | null;
 }
 

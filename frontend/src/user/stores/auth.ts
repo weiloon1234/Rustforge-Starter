@@ -1,4 +1,4 @@
-import { createAuthStore } from "../../shared/createAuthStore";
+import { createAuthStore } from "@shared/createAuthStore";
 
 export const useAuthStore = createAuthStore({
   loginEndpoint: "/api/v1/auth/login",

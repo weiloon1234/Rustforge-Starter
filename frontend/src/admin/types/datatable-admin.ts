@@ -1,21 +1,12 @@
-import type { AdminType } from "./enums";
-import type {
-  DataTableQueryRequestBase,
-  DataTableEmailExportRequestBase,
-} from "../../shared/types/datatable";
+import type { AdminType } from "@admin/types/enums";
 
-export interface AdminDatatableQueryInput {
-  base?: DataTableQueryRequestBase;
-  q?: string | null;
-  username?: string | null;
-  email?: string | null;
-  admin_type?: AdminType | null;
-}
-
-export interface AdminDatatableEmailExportInput {
-  base: DataTableEmailExportRequestBase;
-  q?: string | null;
-  username?: string | null;
-  email?: string | null;
-  admin_type?: AdminType | null;
+export interface AdminDatatableRow {
+  id: number;
+  username: string;
+  email: string | null;
+  name: string;
+  admin_type: AdminType;
+  abilities: string[];
+  created_at: string;
+  updated_at: string;
 }

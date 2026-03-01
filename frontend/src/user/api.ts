@@ -1,5 +1,5 @@
-import { createApiClient } from "../../shared/createApiClient";
-import { useAuthStore } from "./stores/auth";
+import { createApiClient } from "@shared/createApiClient";
+import { useAuthStore } from "@user/stores/auth";
 
 export const api = createApiClient({
   getToken: () => useAuthStore.getState().token,

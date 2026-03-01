@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import type { AuthState, Account } from "./createAuthStore";
+import type { AuthState, Account } from "@shared/createAuthStore";
 import type { StoreApi, UseBoundStore } from "zustand";
 
 interface Props {

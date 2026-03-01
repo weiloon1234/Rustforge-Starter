@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
-import { ProtectedRoute } from "../shared/ProtectedRoute";
-import { useAuthStore } from "./stores/auth";
+import { ProtectedRoute } from "@shared/ProtectedRoute";
+import { useAuthStore } from "@user/stores/auth";
 
 function DashboardPage() {
   return (

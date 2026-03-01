@@ -4,7 +4,7 @@ pub mod v1;
 
 use std::sync::Arc;
 
-use axum::{routing::get as axum_get, Json, Router};
+use axum::{routing::get as axum_get, Json, Router, response::Html};
 use bootstrap::boot::BootContext;
 use core_web::openapi::{
     aide::{
@@ -57,18 +57,64 @@ pub async fn build_router(ctx: BootContext) -> anyhow::Result<Router> {
             "/admin",
             ServeDir::new(&admin_public).fallback(ServeFile::new(&admin_index)),
         );
+    } else {
+        router = router
+            .route("/admin", axum_get(admin_dev))
+            .route("/admin/{*path}", axum_get(admin_dev));
     }
 
     // User SPA: everything else → public/index.html (existing logic)
     if let Some(static_router) = core_web::static_assets::static_assets_router(&public_path) {
         router = router.merge(static_router);
     } else {
-        router = router.route("/", axum_get(root));
+        router = router.fallback(axum_get(root));
     }
 
     Ok(router)
 }
 
-async fn root() -> &'static str {
-    "ok"
+async fn root() -> Html<&'static str> {
+    Html(r#"<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>App</title>
+    <script type="module" src="http://localhost:5173/@vite/client"></script>
+    <script type="module">
+      import RefreshRuntime from "http://localhost:5173/@react-refresh"
+      RefreshRuntime.injectIntoGlobalHook(window)
+      window.$RefreshReg$ = () => {}
+      window.$RefreshSig$ = () => (type) => type
+      window.__vite_plugin_react_preamble_installed__ = true
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="http://localhost:5173/src/user/main.tsx"></script>
+  </body>
+</html>"#)
+}
+
+async fn admin_dev() -> Html<&'static str> {
+    Html(r#"<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin</title>
+    <script type="module" src="http://localhost:5174/admin/@vite/client"></script>
+    <script type="module">
+      import RefreshRuntime from "http://localhost:5174/admin/@react-refresh"
+      RefreshRuntime.injectIntoGlobalHook(window)
+      window.$RefreshReg$ = () => {}
+      window.$RefreshSig$ = () => (type) => type
+      window.__vite_plugin_react_preamble_installed__ = true
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="http://localhost:5174/admin/src/admin/main.tsx"></script>
+  </body>
+</html>"#)
 }

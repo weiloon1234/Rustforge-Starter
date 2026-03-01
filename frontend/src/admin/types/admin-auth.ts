@@ -1,4 +1,4 @@
-import type { AdminType, AuthClientType } from "./enums";
+import type { AdminType, AuthClientType } from "@admin/types/enums";
 
 export interface AdminLoginInput {
   username: string;

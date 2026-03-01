@@ -26,6 +26,7 @@ frontend/
     │   ├── types/                     # Generated shared TS types (make gen-types)
     │   │   ├── api.ts                 # ApiResponse<T>, ApiErrorResponse
     │   │   ├── datatable.ts           # DataTable request/response generics
+    │   │   ├── platform.ts            # Localized, attachments, meta, JSON generic shapes
     │   │   └── index.ts               # Barrel export
     │   ├── i18n.ts                    # i18next init (shared JSON, :param transform)
     │   ├── createAuthStore.ts         # Zustand auth store factory
@@ -33,6 +34,7 @@ frontend/
     │   ├── ProtectedRoute.tsx         # Auth guard (route protection + session restore)
     │   └── components/                # Shared form components (styled via rf-* classes)
     │       ├── index.ts               # Barrel export
+    │       ├── FieldErrors.tsx          # Shared error renderer (FieldErrors, hasFieldError)
     │       ├── TextInput.tsx           # text, email, password, search, url, tel, number, money, pin
     │       ├── TextArea.tsx            # Multi-line text
     │       ├── Select.tsx              # Dropdown with typed options
@@ -82,8 +84,8 @@ Use `<Link to="/login">` and `useNavigate()` — the basename is applied automat
 
 ```tsx
 import { Routes, Route } from "react-router-dom";
-import { ProtectedRoute } from "../shared/ProtectedRoute";
-import { useAuthStore } from "./stores/auth";
+import { ProtectedRoute } from "@shared/ProtectedRoute";
+import { useAuthStore } from "@user/stores/auth";
 
 export default function App() {
   return (
@@ -133,8 +135,8 @@ Each portal has its own `api.ts` that exports a configured Axios instance. The s
 - **Response interceptor**: on 401, attempts token refresh (one concurrent refresh), retries the request, or redirects to login on failure
 
 ```tsx
-// Import the portal's api instance for all API calls
-import { api } from "./api";
+// Import the portal's api instance for all API calls (use @admin/ or @user/ alias)
+import { api } from "@admin/api";
 
 const res = await api.get("/api/v1/articles");
 const data = res.data;
@@ -172,8 +174,8 @@ Type definitions in `*/types/` directories are **auto-generated** from Rust cont
 ### Usage
 
 ```typescript
-import type { ApiResponse } from "../../shared/types";
-import type { AdminOutput, CreateAdminInput } from "../types";
+import type { ApiResponse } from "@shared/types";
+import type { AdminOutput, CreateAdminInput } from "@admin/types";
 
 // Typed API calls
 const res = await api.post<ApiResponse<AdminOutput>>("/api/v1/admin", input);
@@ -189,18 +191,16 @@ make gen          # Code generation + type generation
 
 ### How it works
 
-1. Rust contract structs derive `ts_rs::TS` with `#[ts(export, export_to = "admin/types/")]`
-2. `app/src/bin/export-types.rs` calls `T::export_to_string()` for each contract type
-3. The binary assembles complete `.ts` files with proper imports and writes to `frontend/src/`
-4. Framework types (ApiResponse, DataTable*) and enum types are emitted as static strings
+1. Rust contract structs derive `ts_rs::TS` with `#[ts(export, export_to = "{portal}/types/")]`
+2. `app/build.rs` auto-discovers contract/datatable TS types from `app/src/contracts/api/v1/**` and `app/src/contracts/datatable/**`
+3. `app/src/bin/export-types.rs` exports discovered types, assembles `.ts` files with enum imports, and writes to `frontend/src/`
+4. Per-portal `types/index.ts`, shared framework types, and enum types are emitted automatically
 
 ### Adding types for a new domain
 
 1. In your Rust contract, add `#[derive(TS)]` and `#[ts(export, export_to = "{portal}/types/")]`
 2. For fields using external types (generated enums, framework types), add `#[ts(type = "TypeName")]`
-3. Register the types in `app/src/bin/export-types.rs` (add a new `TsFile` block)
-4. Update the barrel `index.ts` to re-export the new module
-5. Run `make gen-types`
+3. Run `make gen-types` (types and portal barrels are discovered/generated automatically)
 
 ### Type mapping conventions
 
@@ -226,7 +226,7 @@ Use Zustand for state. Define stores in `src/{portal}/stores/`.
 
 ```typescript
 // src/{portal}/stores/auth.ts
-import { createAuthStore } from "../../shared/createAuthStore";
+import { createAuthStore } from "@shared/createAuthStore";
 
 export const useAuthStore = createAuthStore({
   loginEndpoint:   "/api/v1/{portal}/auth/login",
@@ -251,7 +251,7 @@ await login({ email, password });
 For portals with extra account fields, pass a generic:
 
 ```typescript
-import { createAuthStore, type Account } from "../../shared/createAuthStore";
+import { createAuthStore, type Account } from "@shared/createAuthStore";
 
 interface MerchantAccount extends Account {
   companyId: number;
@@ -315,7 +315,7 @@ This means portals can have completely different visual styles while sharing ide
 ### Usage
 
 ```tsx
-import { TextInput, TextArea, Select, Checkbox, Radio } from "../shared/components";
+import { TextInput, TextArea, Select, Checkbox, Radio } from "@shared/components";
 
 // Basic text input with error
 <TextInput label="Email" type="email" required error={errors.email} />
@@ -360,9 +360,13 @@ import { TextInput, TextArea, Select, Checkbox, Radio } from "../shared/componen
 ### Error and Notes Pattern
 
 All components follow the same pattern:
-- `error` prop: shows a red error message below the input and applies error styling
-- `notes` prop: shows a grey helper note below the input (hidden when `error` is present)
+- `error?: string` prop: shows a single red error message below the input (for standalone usage)
+- `errors?: string[]` prop: shows multiple red error messages, one per line (for API validation errors)
+- Both can be provided simultaneously — duplicates are automatically deduplicated by `FieldErrors`
+- `notes` prop: shows a grey helper note below the input (hidden when any error is present)
 - `required` prop: adds a red asterisk after the label
+
+`useAutoForm` passes `errors` (array) from the API response directly to each component, preserving individual validation messages.
 
 ### Special TextInput Types
 
@@ -392,19 +396,172 @@ When adding a new portal, copy the `@layer components` block from an existing po
 
 ## Adding a New Portal
 
-1. Create `vite.config.{name}.ts` — set `base`, `server.port`, `build.outDir`.
-2. Create `{name}.html` entry point.
-3. Create `src/{name}/main.tsx` — `BrowserRouter` with `basename="/{name}"`.
-4. Create `src/{name}/App.tsx` — routes with `<ProtectedRoute>` wrapping protected routes.
-5. Create `src/{name}/app.css` — Tailwind theme.
-6. Create `src/{name}/stores/auth.ts` — call `createAuthStore` with portal config.
-7. Create `src/{name}/api.ts` — call `createApiClient` wired to auth store.
-8. Add `dev:{name}` and `build:{name}` scripts to `package.json`.
-9. Update the `build` script ordering (build nested portals first).
-10. In Rust, add `nest_service("/{name}", ...)` in `build_router` (see `app/src/internal/api/mod.rs`).
+Use the admin portal as the reference. Example below uses `merchant` on port 5175.
 
-## Production
+### 1. Vite config — `frontend/vite.config.merchant.ts`
 
-`make build-frontend` writes optimised assets into `public/`. The Rust API serves them:
-- `/admin/*` → `public/admin/index.html` (admin SPA fallback)
-- `/*` → `public/index.html` (user SPA fallback)
+```typescript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  root: ".",
+  base: "/merchant/",
+  build: {
+    outDir: "../public/merchant",
+    emptyOutDir: true,
+    rollupOptions: { input: "merchant.html" },
+  },
+  experimental: {
+    renderBuiltUrl(filename, { hostType }) {
+      if (hostType === "html") return filename;
+      return "/merchant/" + filename;
+    },
+  },
+  server: {
+    port: 5175,
+    proxy: { "/api": "http://localhost:3000" },
+  },
+});
+```
+
+Key settings: `base: "/merchant/"` (trailing slash), `outDir: "../public/merchant"`, unique `port`.
+
+### 2. HTML entry — `frontend/merchant.html`
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Merchant</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/merchant/main.tsx"></script>
+  </body>
+</html>
+```
+
+### 3. Source directory — `frontend/src/merchant/`
+
+```
+src/merchant/
+├── main.tsx          # BrowserRouter with basename="/merchant"
+├── App.tsx           # Routes + ProtectedRoute
+├── app.css           # @import "tailwindcss" + @theme {} + rf-* classes
+├── api.ts            # createApiClient wired to auth store
+├── stores/
+│   └── auth.ts       # createAuthStore with /api/v1/merchant/auth/* endpoints
+└── types/            # Generated TS types (make gen-types)
+    └── index.ts
+```
+
+**`main.tsx`** — must set `basename`:
+
+```tsx
+import { BrowserRouter } from "react-router-dom";
+// ...
+<BrowserRouter basename="/merchant">
+  <App />
+</BrowserRouter>
+```
+
+**`app.css`** — copy the `@theme {}` block and `@layer components` block from an existing portal, then customise the colour tokens. The `rf-*` class definitions in `@layer components` should be identical — visual differences come from the theme tokens.
+
+### 4. npm scripts — `frontend/package.json`
+
+```json
+"dev:merchant": "vite --config vite.config.merchant.ts",
+"build:merchant": "vite build --config vite.config.merchant.ts",
+"build": "rm -rf ../public && npm run build:admin && npm run build:merchant && npm run build:user"
+```
+
+Build order: nested portals (`admin`, `merchant`) **before** `user`. The user build uses `emptyOutDir: false` so it preserves the nested portal outputs inside `public/`.
+
+### 5. Makefile
+
+Add a `dev-merchant` target and include the new process in `dev`:
+
+```makefile
+.PHONY: dev-merchant
+dev-merchant: ensure-frontend-deps
+	npm --prefix frontend run dev:merchant
+
+# In the `dev` target, add a line:
+npm --prefix frontend run dev:merchant &
+```
+
+### 6. Rust — SPA serving (`app/src/internal/api/mod.rs`)
+
+Add **before** the user SPA catch-all block. Two modes:
+
+**Production** (built frontend exists): serve static files with SPA fallback.
+**Dev** (no built frontend): serve HTML that loads from the Vite dev server with HMR.
+
+```rust
+// Merchant SPA: /merchant/* → public/merchant/index.html
+let merchant_public = public_path.join("merchant");
+let merchant_index = merchant_public.join("index.html");
+if merchant_public.is_dir() && merchant_index.is_file() {
+    router = router.nest_service(
+        "/merchant",
+        ServeDir::new(&merchant_public).fallback(ServeFile::new(&merchant_index)),
+    );
+} else {
+    router = router
+        .route("/merchant", axum_get(merchant_dev))
+        .route("/merchant/{*path}", axum_get(merchant_dev));
+}
+```
+
+Dev handler — serves HTML that loads scripts from the Vite dev server so HMR and React Fast Refresh work at `localhost:3000/merchant`:
+
+```rust
+async fn merchant_dev() -> Html<&'static str> {
+    Html(r#"<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Merchant</title>
+    <script type="module" src="http://localhost:5175/@vite/client"></script>
+    <script type="module">
+      import RefreshRuntime from "http://localhost:5175/@react-refresh"
+      RefreshRuntime.injectIntoGlobalHook(window)
+      window.$RefreshReg$ = () => {}
+      window.$RefreshSig$ = () => (type) => type
+      window.__vite_plugin_react_preamble_installed__ = true
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="http://localhost:5175/src/merchant/main.tsx"></script>
+  </body>
+</html>"#)
+}
+```
+
+### Port allocation
+
+| Portal | Dev port | Base path |
+|--------|----------|-----------|
+| user | 5173 | `/` |
+| admin | 5174 | `/admin/` |
+| (next) | 5175 | `/{name}/` |
+
+## Dev vs Production Serving
+
+**Dev mode** (`make dev`, no built frontend in `public/`):
+
+The Rust API server at `:3000` serves HTML pages that load scripts directly from the Vite dev servers. The browser fetches modules from the Vite origin, so HMR, React Fast Refresh, and all asset resolution work as if you visited the Vite port directly. You can visit either `localhost:3000` or the Vite port — both work.
+
+**Production** (`make build-frontend`):
+
+`make build-frontend` compiles all portals into `public/`. The Rust API serves them as static files with SPA fallback routing:
+
+- `/admin/*` → `public/admin/index.html`
+- `/{portal}/*` → `public/{portal}/index.html`
+- `/*` → `public/index.html` (user portal catch-all, must be last)

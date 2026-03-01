@@ -1,150 +1,40 @@
-use std::collections::BTreeMap;
-
-use core_datatable::DataTableInput;
 use core_web::datatable::{
-    DataTableEmailExportRequestBase, DataTableFilterFieldDto, DataTableFilterFieldType,
-    DataTableQueryRequestBase, DataTableQueryRequestContract, DataTableScopedContract,
+    DataTableFilterFieldDto, DataTableFilterFieldType,
+    DataTableGenericEmailExportRequest, DataTableGenericQueryRequest,
+    DataTableScopedContract,
 };
-use core_web::contracts::rustforge_contract;
-use generated::models::{AdminType, AdminView};
+use generated::models::AdminType;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use ts_rs::TS;
-use validator::Validate;
 
-#[rustforge_contract]
-#[derive(TS)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, TS)]
 #[ts(export, export_to = "admin/types/")]
-pub struct AdminDatatableQueryInput {
-    #[serde(default)]
-    #[rf(nested)]
-    #[ts(type = "DataTableQueryRequestBase")]
-    pub base: DataTableQueryRequestBase,
-    #[serde(default)]
-    #[rf(length(min = 1, max = 120))]
-    pub q: Option<String>,
-    #[serde(default)]
-    #[rf(length(min = 3, max = 64))]
-    #[rf(alpha_dash)]
-    pub username: Option<String>,
-    #[serde(default)]
-    #[rf(length(min = 1, max = 120))]
+pub struct AdminDatatableRow {
+    pub id: i64,
+    pub username: String,
     pub email: Option<String>,
+    pub name: String,
+    #[ts(type = "AdminType")]
+    pub admin_type: AdminType,
     #[serde(default)]
-    #[ts(type = "AdminType | null")]
-    pub admin_type: Option<AdminType>,
-}
-
-impl AdminDatatableQueryInput {
-    pub fn to_input(&self) -> DataTableInput {
-        let mut input = self.base.to_input();
-        let mut params = BTreeMap::new();
-
-        if let Some(q) = self.q.as_deref().map(str::trim).filter(|v| !v.is_empty()) {
-            params.insert("q".to_string(), q.to_string());
-        }
-        if let Some(username) = self
-            .username
-            .as_deref()
-            .map(str::trim)
-            .filter(|v| !v.is_empty())
-        {
-            params.insert(
-                "f-like-username".to_string(),
-                username.to_ascii_lowercase(),
-            );
-        }
-        if let Some(email) = self
-            .email
-            .as_deref()
-            .map(str::trim)
-            .filter(|v| !v.is_empty())
-        {
-            params.insert("f-like-email".to_string(), email.to_string());
-        }
-        if let Some(admin_type) = self.admin_type {
-            params.insert("f-admin_type".to_string(), admin_type.as_str().to_string());
-        }
-
-        input.params.extend(params);
-        input
-    }
-}
-
-impl DataTableQueryRequestContract for AdminDatatableQueryInput {
-    fn query_base(&self) -> &DataTableQueryRequestBase {
-        &self.base
-    }
-
-    fn datatable_query_to_input(&self) -> DataTableInput {
-        self.to_input()
-    }
-}
-
-#[rustforge_contract]
-#[derive(TS)]
-#[ts(export, export_to = "admin/types/")]
-pub struct AdminDatatableEmailExportInput {
-    #[rf(nested)]
-    #[ts(type = "DataTableEmailExportRequestBase")]
-    pub base: DataTableEmailExportRequestBase,
-    #[serde(default)]
-    #[rf(length(min = 1, max = 120))]
-    pub q: Option<String>,
-    #[serde(default)]
-    #[rf(length(min = 3, max = 64))]
-    #[rf(alpha_dash)]
-    pub username: Option<String>,
-    #[serde(default)]
-    #[rf(length(min = 1, max = 120))]
-    pub email: Option<String>,
-    #[serde(default)]
-    #[ts(type = "AdminType | null")]
-    pub admin_type: Option<AdminType>,
-}
-
-impl AdminDatatableEmailExportInput {
-    pub fn to_input(&self) -> DataTableInput {
-        let mut input = self.base.query.to_input();
-        let mut params = BTreeMap::new();
-
-        if let Some(q) = self.q.as_deref().map(str::trim).filter(|v| !v.is_empty()) {
-            params.insert("q".to_string(), q.to_string());
-        }
-        if let Some(username) = self
-            .username
-            .as_deref()
-            .map(str::trim)
-            .filter(|v| !v.is_empty())
-        {
-            params.insert(
-                "f-like-username".to_string(),
-                username.to_ascii_lowercase(),
-            );
-        }
-        if let Some(email) = self
-            .email
-            .as_deref()
-            .map(str::trim)
-            .filter(|v| !v.is_empty())
-        {
-            params.insert("f-like-email".to_string(), email.to_string());
-        }
-        if let Some(admin_type) = self.admin_type {
-            params.insert("f-admin_type".to_string(), admin_type.as_str().to_string());
-        }
-
-        input.params.extend(params);
-        input.export_file_name = self.base.export_file_name.clone();
-        input
-    }
+    #[ts(type = "string[]")]
+    pub abilities: Vec<String>,
+    #[schemars(with = "String")]
+    #[ts(type = "string")]
+    pub created_at: String,
+    #[schemars(with = "String")]
+    #[ts(type = "string")]
+    pub updated_at: String,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct AdminAdminDataTableContract;
 
 impl DataTableScopedContract for AdminAdminDataTableContract {
-    type QueryRequest = AdminDatatableQueryInput;
-    type EmailRequest = AdminDatatableEmailExportInput;
-    type Row = AdminView;
+    type QueryRequest = DataTableGenericQueryRequest;
+    type EmailRequest = DataTableGenericEmailExportRequest;
+    type Row = AdminDatatableRow;
 
     fn scoped_key(&self) -> &'static str {
         "admin.account"
@@ -152,22 +42,6 @@ impl DataTableScopedContract for AdminAdminDataTableContract {
 
     fn openapi_tag(&self) -> &'static str {
         "Admin Account"
-    }
-
-    fn email_to_input(&self, req: &Self::EmailRequest) -> DataTableInput {
-        req.to_input()
-    }
-
-    fn email_recipients(&self, req: &Self::EmailRequest) -> Vec<String> {
-        req.base.recipients.clone()
-    }
-
-    fn email_subject(&self, req: &Self::EmailRequest) -> Option<String> {
-        req.base.subject.clone()
-    }
-
-    fn export_file_name(&self, req: &Self::EmailRequest) -> Option<String> {
-        req.base.export_file_name.clone()
     }
 
     fn filter_rows(&self) -> Vec<Vec<DataTableFilterFieldDto>> {

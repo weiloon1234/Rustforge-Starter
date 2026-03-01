@@ -1,13 +1,15 @@
 import { forwardRef, useId, type TextareaHTMLAttributes } from "react";
+import { FieldErrors, hasFieldError } from "@shared/components/FieldErrors";
 
 export interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
+  errors?: string[];
   notes?: string;
 }
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
-  ({ label, error, notes, required, className, id: externalId, ...rest }, ref) => {
+  ({ label, error, errors, notes, required, className, id: externalId, ...rest }, ref) => {
     const autoId = useId();
     const id = externalId ?? autoId;
 
@@ -22,11 +24,11 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           ref={ref}
           id={id}
           required={required}
-          className={`rf-textarea ${error ? "rf-textarea-error" : ""} ${className ?? ""}`}
+          className={`rf-textarea ${hasFieldError(error, errors) ? "rf-textarea-error" : ""} ${className ?? ""}`}
           {...rest}
         />
-        {error && <p className="rf-error-message">{error}</p>}
-        {notes && !error && <p className="rf-note">{notes}</p>}
+        <FieldErrors error={error} errors={errors} />
+        {notes && !hasFieldError(error, errors) && <p className="rf-note">{notes}</p>}
       </div>
     );
   },

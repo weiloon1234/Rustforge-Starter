@@ -1,4 +1,5 @@
 import { forwardRef, useId, type SelectHTMLAttributes } from "react";
+import { FieldErrors, hasFieldError } from "@shared/components/FieldErrors";
 
 export interface SelectOption {
   value: string;
@@ -10,12 +11,13 @@ export interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement
   options: SelectOption[];
   label?: string;
   error?: string;
+  errors?: string[];
   notes?: string;
   placeholder?: string;
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ options, label, error, notes, required, placeholder, className, value, defaultValue, id: externalId, ...rest }, ref) => {
+  ({ options, label, error, errors, notes, required, placeholder, className, value, defaultValue, id: externalId, ...rest }, ref) => {
     const autoId = useId();
     const id = externalId ?? autoId;
     const isPlaceholder = value === "" || (value === undefined && defaultValue === undefined);
@@ -33,7 +35,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           required={required}
           value={value}
           defaultValue={defaultValue}
-          className={`rf-select ${error ? "rf-select-error" : ""} ${isPlaceholder ? "rf-select-placeholder" : ""} ${className ?? ""}`}
+          className={`rf-select ${hasFieldError(error, errors) ? "rf-select-error" : ""} ${isPlaceholder ? "rf-select-placeholder" : ""} ${className ?? ""}`}
           {...rest}
         >
           {placeholder && (
@@ -47,8 +49,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
-        {error && <p className="rf-error-message">{error}</p>}
-        {notes && !error && <p className="rf-note">{notes}</p>}
+        <FieldErrors error={error} errors={errors} />
+        {notes && !hasFieldError(error, errors) && <p className="rf-note">{notes}</p>}
       </div>
     );
   },

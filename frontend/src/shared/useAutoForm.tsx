@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback, type ReactElement } from "react";
 import type { AxiosInstance, AxiosError } from "axios";
-import { TextInput } from "./components/TextInput";
-import { TextArea } from "./components/TextArea";
-import { Select, type SelectOption } from "./components/Select";
-import { Checkbox } from "./components/Checkbox";
-import { Radio, type RadioOption } from "./components/Radio";
+import { TextInput } from "@shared/components/TextInput";
+import { TextArea } from "@shared/components/TextArea";
+import { Select, type SelectOption } from "@shared/components/Select";
+import { Checkbox } from "@shared/components/Checkbox";
+import { Radio, type RadioOption } from "@shared/components/Radio";
 
 type InputFieldType = "text" | "email" | "password" | "search" | "url" | "tel" | "number" | "money" | "pin";
 
@@ -20,13 +20,15 @@ interface AutoFormConfig {
   method?: "post" | "put" | "patch";
   fields: FieldDef[];
   defaults?: Record<string, string>;
+  /** Static key-value pairs merged into every submission (not rendered as form fields). */
+  extraPayload?: Record<string, unknown>;
   onSuccess?: (data: unknown) => void;
   onError?: (error: unknown) => void;
 }
 
 interface AutoFormErrors {
   general: string | null;
-  fields: Record<string, string>;
+  fields: Record<string, string[]>;
 }
 
 interface AutoFormResult {
@@ -34,6 +36,7 @@ interface AutoFormResult {
   busy: boolean;
   form: ReactElement;
   errors: AutoFormErrors;
+  values: Record<string, string>;
   reset: () => void;
   setValues: (values: Record<string, string>) => void;
 }
@@ -49,10 +52,10 @@ function buildDefaults(fields: FieldDef[], defaults?: Record<string, string>): R
 }
 
 export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFormResult {
-  const { url, method = "post", fields, defaults, onSuccess, onError } = config;
+  const { url, method = "post", fields, defaults, extraPayload, onSuccess, onError } = config;
 
   const [values, setValuesState] = useState<Record<string, string>>(() => buildDefaults(fields, defaults));
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -82,7 +85,7 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
     setGeneralError(null);
 
     // Build payload — checkboxes send "1"/"0" instead of "on"/""
-    const payload: Record<string, string> = {};
+    const payload: Record<string, unknown> = { ...extraPayload };
     for (const field of fields) {
       const v = values[field.name] ?? "";
       payload[field.name] = field.type === "checkbox" ? (v ? "1" : "0") : v;
@@ -97,9 +100,13 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
       if (body) {
         setGeneralError(body.message ?? "Something went wrong");
         if (body.errors) {
-          const mapped: Record<string, string> = {};
+          const mapped: Record<string, string[]> = {};
           for (const [key, msgs] of Object.entries(body.errors)) {
-            if (msgs.length > 0) mapped[key] = msgs[0];
+            if (msgs.length > 0) {
+              // Use base field name (strip nested suffixes like ".value")
+              const fieldKey = key.split(".")[0];
+              mapped[fieldKey] = [...(mapped[fieldKey] ?? []), ...msgs];
+            }
           }
           setFieldErrors(mapped);
         }
@@ -110,7 +117,7 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
     } finally {
       setBusy(false);
     }
-  }, [api, method, url, fields, values, onSuccess, onError]);
+  }, [api, method, url, fields, values, extraPayload, onSuccess, onError]);
 
   const form = useMemo((): ReactElement => {
     return (
@@ -118,7 +125,7 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
         {fields.map((field) => {
           const span = field.span ?? 2;
           const style = { gridColumn: `span ${span}` };
-          const error = fieldErrors[field.name];
+          const errors = fieldErrors[field.name];
 
           switch (field.type) {
             case "textarea":
@@ -128,7 +135,7 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
                     label={field.label}
                     value={values[field.name] ?? ""}
                     onChange={(e) => setValue(field.name, e.target.value)}
-                    error={error}
+                    errors={errors}
                     notes={field.notes}
                     placeholder={field.placeholder}
                     required={field.required}
@@ -146,7 +153,7 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
                     options={field.options}
                     value={values[field.name] ?? ""}
                     onChange={(e) => setValue(field.name, e.target.value)}
-                    error={error}
+                    errors={errors}
                     notes={field.notes}
                     placeholder={field.placeholder}
                     required={field.required}
@@ -162,7 +169,7 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
                     label={field.label}
                     checked={values[field.name] === "1"}
                     onChange={(e) => setValue(field.name, e.target.checked ? "1" : "")}
-                    error={error}
+                    errors={errors}
                     notes={field.notes}
                     required={field.required}
                     disabled={field.disabled}
@@ -179,7 +186,7 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
                     options={field.options}
                     value={values[field.name] ?? ""}
                     onChange={(v) => setValue(field.name, v)}
-                    error={error}
+                    errors={errors}
                     notes={field.notes}
                     required={field.required}
                     disabled={field.disabled}
@@ -197,7 +204,7 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
                     label={field.label}
                     value={values[field.name] ?? ""}
                     onChange={(e) => setValue(field.name, e.target.value)}
-                    error={error}
+                    errors={errors}
                     notes={field.notes}
                     placeholder={(field as { placeholder?: string }).placeholder}
                     required={field.required}
@@ -212,5 +219,5 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
     );
   }, [fields, values, fieldErrors, setValue]);
 
-  return { submit, busy, form, errors: { general: generalError, fields: fieldErrors }, reset, setValues };
+  return { submit, busy, form, errors: { general: generalError, fields: fieldErrors }, values, reset, setValues };
 }

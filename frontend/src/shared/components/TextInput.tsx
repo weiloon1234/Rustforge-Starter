@@ -1,4 +1,5 @@
 import { forwardRef, useId, useState, type InputHTMLAttributes } from "react";
+import { FieldErrors, hasFieldError } from "@shared/components/FieldErrors";
 
 type InputType = "text" | "email" | "password" | "search" | "url" | "tel" | "number" | "money" | "pin";
 
@@ -6,6 +7,7 @@ export interface TextInputProps extends Omit<InputHTMLAttributes<HTMLInputElemen
   type?: InputType;
   label?: string;
   error?: string;
+  errors?: string[];
   notes?: string;
 }
 
@@ -23,7 +25,7 @@ function rawMoney(display: string): string {
 }
 
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
-  ({ type = "text", label, error, notes, required, className, onChange, value, defaultValue, id: externalId, ...rest }, ref) => {
+  ({ type = "text", label, error, errors, notes, required, className, onChange, value, defaultValue, id: externalId, ...rest }, ref) => {
     const autoId = useId();
     const id = externalId ?? autoId;
     const isMoney = type === "money";
@@ -65,14 +67,14 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
           type={resolvedType}
           inputMode={inputMode}
           required={required}
-          className={`rf-input ${error ? "rf-input-error" : ""} ${className ?? ""}`}
+          className={`rf-input ${hasFieldError(error, errors) ? "rf-input-error" : ""} ${className ?? ""}`}
           onChange={handleChange}
           value={isMoney ? moneyDisplay : value}
           defaultValue={isMoney ? undefined : defaultValue}
           {...rest}
         />
-        {error && <p className="rf-error-message">{error}</p>}
-        {notes && !error && <p className="rf-note">{notes}</p>}
+        <FieldErrors error={error} errors={errors} />
+        {notes && !hasFieldError(error, errors) && <p className="rf-note">{notes}</p>}
       </div>
     );
   },

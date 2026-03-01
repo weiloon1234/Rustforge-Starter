@@ -19,8 +19,6 @@ pub struct CreateAdminInput {
     pub email: Option<String>,
     #[rf(length(min = 1, max = 120))]
     pub name: String,
-    #[ts(type = "AdminType")]
-    pub admin_type: AdminType,
     #[rf(length(min = 8, max = 128))]
     pub password: String,
     #[serde(default)]
@@ -49,9 +47,6 @@ pub struct UpdateAdminInput {
     #[serde(default)]
     #[rf(length(min = 1, max = 120))]
     pub name: Option<String>,
-    #[serde(default)]
-    #[ts(type = "AdminType | null")]
-    pub admin_type: Option<AdminType>,
     #[serde(default)]
     #[ts(type = "Permission[] | null")]
     pub abilities: Option<Vec<Permission>>,

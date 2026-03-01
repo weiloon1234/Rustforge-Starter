@@ -16,14 +16,15 @@ export interface ApiClientConfig {
  *   retries the original request. Concurrent 401s share one refresh call.
  */
 export function createApiClient(config: ApiClientConfig): AxiosInstance {
-  const api = axios.create();
+  const api = axios.create({ withCredentials: true });
 
-  // ── Request: attach bearer token ────────────────────────
+  // ── Request: attach bearer token + timezone ─────────────
   api.interceptors.request.use((req) => {
     const token = config.getToken();
     if (token) {
       req.headers.Authorization = `Bearer ${token}`;
     }
+    req.headers["X-Timezone"] = Intl.DateTimeFormat().resolvedOptions().timeZone;
     return req;
   });
 
@@ -37,7 +38,13 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
         _retry?: boolean;
       };
 
-      if (error.response?.status !== 401 || original._retry) {
+      // Only attempt refresh if there is an active session (token exists).
+      // Unauthenticated requests (e.g. login) should not trigger a refresh.
+      if (
+        error.response?.status !== 401 ||
+        original._retry ||
+        !config.getToken()
+      ) {
         return Promise.reject(error);
       }
 

@@ -1,6 +1,4 @@
-use core_db::common::sql::{
-    DbConn, Op, generate_snowflake_i64,
-};
+use core_db::common::sql::{generate_snowflake_i64, DbConn, Op};
 use core_i18n::t;
 use core_web::{auth::AuthUser, error::AppError};
 use generated::{
@@ -10,7 +8,7 @@ use generated::{
 };
 
 use crate::{
-    contracts::api::v1::admin::{CreateAdminInput, UpdateAdminInput},
+    contracts::api::v1::admin::account::{CreateAdminInput, UpdateAdminInput},
     internal::api::state::AppApiState,
 };
 
@@ -36,7 +34,7 @@ pub async fn create(
         .set_id(generate_snowflake_i64())
         .set_username(username)
         .set_name(req.name.trim().to_string())
-        .set_admin_type(req.admin_type)
+        .set_admin_type(AdminType::Admin)
         .set_abilities(permissions_to_json(&abilities));
 
     if let Some(email) = normalize_optional_email(req.email) {
@@ -60,7 +58,9 @@ pub async fn update(
     }
 
     let existing = detail(state, id).await?;
-    let mut update = Admin::new(DbConn::pool(&state.db), None).update().where_id(Op::Eq, id);
+    let mut update = Admin::new(DbConn::pool(&state.db), None)
+        .update()
+        .where_id(Op::Eq, id);
     let mut touched = false;
 
     if let Some(username) = req.username {
@@ -78,11 +78,6 @@ pub async fn update(
 
     if let Some(email) = normalize_optional_email(req.email) {
         update = update.set_email(Some(email));
-        touched = true;
-    }
-
-    if let Some(admin_type) = req.admin_type {
-        update = update.set_admin_type(admin_type);
         touched = true;
     }
 
@@ -112,6 +107,16 @@ pub async fn remove(
     if auth.user.id == id {
         return Err(AppError::Forbidden(t(
             "You cannot delete your own admin account here",
+        )));
+    }
+
+    let target = detail(state, id).await?;
+    if matches!(
+        target.admin_type,
+        AdminType::Developer | AdminType::SuperAdmin
+    ) {
+        return Err(AppError::Forbidden(t(
+            "Cannot delete developer or superadmin accounts",
         )));
     }
 
@@ -152,7 +157,10 @@ fn ensure_assignable_permissions(
         .map(|permission| permission.as_str().to_string())
         .collect::<Vec<_>>();
 
-    if matches!(auth.user.admin_type, AdminType::Developer | AdminType::SuperAdmin) {
+    if matches!(
+        auth.user.admin_type,
+        AdminType::Developer | AdminType::SuperAdmin
+    ) {
         return Ok(requested);
     }
 
