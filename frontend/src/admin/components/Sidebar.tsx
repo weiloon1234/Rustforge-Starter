@@ -1,45 +1,42 @@
 import { useLocation, Link } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
-import { navigation, type NavItem, type NavChild } from "@admin/nav";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { navigation, type NavItem } from "@admin/nav";
+import type { AdminType, Permission } from "@admin/types";
+import { hasAnyPermission } from "@shared/permissions";
 import { useAuthStore } from "@admin/stores/auth";
 import { useNotificationStore } from "@admin/stores/notifications";
+import { Button } from "@shared/components";
 
-function matchPattern(pattern: string, value: string): boolean {
-  if (!pattern.endsWith(".*")) return false;
-  const prefix = pattern.slice(0, -2);
-  if (!prefix) return false;
-  return value === prefix || value.startsWith(prefix + ".");
+function hasAccess(scopes: readonly string[], required?: readonly Permission[]): boolean {
+  return hasAnyPermission(scopes, required ?? []);
 }
 
-function manageImpliesRead(granted: string, required: string): boolean {
-  const gi = granted.lastIndexOf(".");
-  const ri = required.lastIndexOf(".");
-  if (gi === -1 || ri === -1) return false;
-  return (
-    granted.slice(0, gi) === required.slice(0, ri) &&
-    granted.slice(gi + 1) === "manage" &&
-    required.slice(ri + 1) === "read"
-  );
-}
-
-function permissionMatches(granted: string, required: string): boolean {
-  const g = granted.trim();
-  const r = required.trim();
-  if (!g || !r) return false;
-  if (g === "*" || r === "*" || g === r) return true;
-  if (manageImpliesRead(g, r)) return true;
-  return matchPattern(g, r) || matchPattern(r, g);
-}
-
-function hasAccess(scopes: string[], required?: string[]): boolean {
+function hasAdminTypeAccess(
+  adminType: AdminType | null,
+  required?: readonly AdminType[],
+): boolean {
   if (!required || required.length === 0) return true;
-  return required.some((r) => scopes.some((g) => permissionMatches(g, r)));
+  if (!adminType) return false;
+  return required.includes(adminType);
 }
 
 function Badge({ count }: { count: number }) {
   if (count <= 0) return null;
   return <span className="rf-badge">{count > 99 ? "99+" : count}</span>;
+}
+
+function normalizePath(path: string): string {
+  if (path === "/") return "/";
+  return path.replace(/\/+$/, "") || "/";
+}
+
+function isPathActive(basePath: string, pathname: string): boolean {
+  const base = normalizePath(basePath);
+  const current = normalizePath(pathname);
+  if (base === "/") return current === "/";
+  return current === base || current.startsWith(`${base}/`);
 }
 
 function NavLink({
@@ -51,6 +48,7 @@ function NavLink({
   active: boolean;
   collapsed: boolean;
 }) {
+  const { t } = useTranslation();
   const count = useNotificationStore((s) => s.getCount(item.notificationKey ?? ""));
   const Icon = item.icon;
 
@@ -58,12 +56,12 @@ function NavLink({
     <Link
       to={item.path}
       className={`rf-sidebar-link ${active ? "rf-sidebar-link-active" : ""}`}
-      title={collapsed ? item.label : undefined}
+      title={collapsed ? t(item.label) : undefined}
     >
       {Icon && <Icon size={20} className="shrink-0" />}
       {!collapsed && (
         <>
-          <span className="flex-1 truncate">{item.label}</span>
+          <span className="flex-1 truncate">{t(item.label)}</span>
           <Badge count={count} />
         </>
       )}
@@ -78,17 +76,21 @@ function ParentNav({
   item,
   collapsed,
   scopes,
+  adminType,
 }: {
   item: NavItem;
   collapsed: boolean;
   scopes: string[];
+  adminType: AdminType | null;
 }) {
+  const { t } = useTranslation();
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const getCount = useNotificationStore((s) => s.getCount);
 
   const visibleChildren = (item.children ?? []).filter((c) =>
-    hasAccess(scopes, c.permissions),
+    hasAccess(scopes, c.permissions) &&
+    hasAdminTypeAccess(adminType, c.admin_types),
   );
 
   const totalCount = visibleChildren.reduce(
@@ -97,15 +99,23 @@ function ParentNav({
   );
 
   const isChildActive = visibleChildren.some(
-    (c) => location.pathname === c.path,
+    (c) => isPathActive(c.path, location.pathname),
   );
+
+  useEffect(() => {
+    if (isChildActive) {
+      setOpen(true);
+    }
+  }, [isChildActive]);
 
   const Icon = item.icon;
 
   if (collapsed) {
     return (
-      <div className="relative" title={item.label}>
-        <button
+      <div className="relative" title={t(item.label)}>
+        <Button
+          variant="plain"
+          size="sm"
           className={`rf-sidebar-link w-full ${isChildActive ? "rf-sidebar-link-active" : ""}`}
           onClick={() => setOpen(!open)}
         >
@@ -113,32 +123,34 @@ function ParentNav({
           {totalCount > 0 && (
             <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary" />
           )}
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
     <div>
-      <button
+      <Button
+        variant="plain"
+        size="sm"
         className={`rf-sidebar-link w-full ${isChildActive ? "rf-sidebar-link-active" : ""}`}
         onClick={() => setOpen(!open)}
       >
         <Icon size={20} className="shrink-0" />
-        <span className="flex-1 truncate text-left">{item.label}</span>
+        <span className="flex-1 truncate text-left">{t(item.label)}</span>
         <Badge count={totalCount} />
         <ChevronDown
           size={16}
           className={`shrink-0 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
         />
-      </button>
+      </Button>
       {open && (
         <div className="ml-7 mt-0.5 space-y-0.5">
           {visibleChildren.map((child) => (
             <NavLink
               key={child.path}
               item={child}
-              active={location.pathname === child.path}
+              active={isPathActive(child.path, location.pathname)}
               collapsed={false}
             />
           ))}
@@ -151,11 +163,17 @@ function ParentNav({
 export default function Sidebar({ collapsed }: { collapsed: boolean }) {
   const location = useLocation();
   const scopes = useAuthStore((s) => s.account?.scopes ?? []);
+  const adminType = useAuthStore((s) => s.account?.admin_type ?? null);
 
   const visibleItems = navigation.filter((item) => {
     if (!hasAccess(scopes, item.permissions)) return false;
+    if (!hasAdminTypeAccess(adminType, item.admin_types)) return false;
     if (item.children) {
-      return item.children.some((c) => hasAccess(scopes, c.permissions));
+      return item.children.some(
+        (c) =>
+          hasAccess(scopes, c.permissions) &&
+          hasAdminTypeAccess(adminType, c.admin_types),
+      );
     }
     return true;
   });
@@ -171,6 +189,7 @@ export default function Sidebar({ collapsed }: { collapsed: boolean }) {
                 item={item}
                 collapsed={collapsed}
                 scopes={scopes}
+                adminType={adminType}
               />
             );
           }
@@ -179,7 +198,7 @@ export default function Sidebar({ collapsed }: { collapsed: boolean }) {
             <NavLink
               key={item.path!}
               item={{ ...item, path: item.path!, icon: item.icon }}
-              active={location.pathname === item.path}
+              active={isPathActive(item.path!, location.pathname)}
               collapsed={collapsed}
             />
           );

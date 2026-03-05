@@ -26,6 +26,7 @@ frontend/
     │   ├── types/                     # Generated shared TS types (make gen-types)
     │   │   ├── api.ts                 # ApiResponse<T>, ApiErrorResponse
     │   │   ├── datatable.ts           # DataTable request/response generics
+    │   │   ├── enums.ts               # Contract-facing enums shared across portals
     │   │   ├── platform.ts            # Localized, attachments, meta, JSON generic shapes
     │   │   └── index.ts               # Barrel export
     │   ├── i18n.ts                    # i18next init (shared JSON, :param transform)
@@ -35,7 +36,8 @@ frontend/
     │   └── components/                # Shared form components (styled via rf-* classes)
     │       ├── index.ts               # Barrel export
     │       ├── FieldErrors.tsx          # Shared error renderer (FieldErrors, hasFieldError)
-    │       ├── TextInput.tsx           # text, email, password, search, url, tel, number, money, pin
+    │       ├── TextInput.tsx           # text, email, password, search, url, tel, number, money, atm, pin
+    │       ├── TiptapInput.tsx         # tapbit/tiptap WYSIWYG HTML editor input
     │       ├── TextArea.tsx            # Multi-line text
     │       ├── Select.tsx              # Dropdown with typed options
     │       ├── Checkbox.tsx            # Single checkbox
@@ -152,9 +154,48 @@ The refresh uses `client_type: "web"` — the Rust backend stores the refresh to
 4. **401 response**: interceptor calls `refreshToken()` → POST to refresh endpoint (cookie sent automatically) → new `access_token` → retry original request
 5. **Refresh failure**: clears auth state, redirects to `/login`
 
+### Avoid Duplicate Auth API Calls (`/me`, `/refresh`)
+
+Use **one source of truth** for session bootstrap: `ProtectedRoute -> initSession()`.
+
+Do:
+
+```tsx
+// Login success
+setToken(result.access_token);
+navigate("/", { replace: true });
+// ProtectedRoute/initSession will fetch /me once
+```
+
+Don't:
+
+```tsx
+// BAD: duplicates /me
+setToken(result.access_token);
+await fetchAccount(); // /me #1
+navigate("/");        // ProtectedRoute initSession -> /me #2
+```
+
+For effect-driven API calls, always guard against duplicate in-flight work.
+
+Do:
+1. Keep an in-flight promise/ref for init/bootstrap calls.
+2. Return existing promise when called again before completion.
+3. Prefer stable callbacks/refs for event hooks used inside shared components.
+
+Don't:
+1. Trigger the same bootstrap fetch from multiple mount points.
+2. Couple fetch effects directly to fast-changing objects/functions without dedupe.
+
 ## i18n (Shared with Rust)
 
 Frontend and Rust share the same `i18n/*.json` files. The Rust backend uses `:param` syntax; `src/shared/i18n.ts` transforms `:param` → `{{param}}` at init time so i18next can interpolate.
+
+Hard rule: all user-facing frontend text must use `t(...)`.
+
+- No hardcoded UI strings in TS/TSX for labels, button text, placeholders, table headers, empty states, validation messages, toasts, or modal content.
+- If backend already returns localized `message`, render it directly.
+- Hardcoded strings are only allowed for non-user-facing debug logs/telemetry keys.
 
 ```tsx
 import { useTranslation } from "react-i18next";
@@ -199,7 +240,7 @@ make gen          # Code generation + type generation
 ### Adding types for a new domain
 
 1. In your Rust contract, add `#[derive(TS)]` and `#[ts(export, export_to = "{portal}/types/")]`
-2. For fields using external types (generated enums, framework types), add `#[ts(type = "TypeName")]`
+2. Rely on native `TS` impls for generated/framework enums and supported newtypes
 3. Run `make gen-types` (types and portal barrels are discovered/generated automatically)
 
 ### Type mapping conventions
@@ -207,13 +248,16 @@ make gen          # Code generation + type generation
 | Rust | TypeScript | Notes |
 |------|-----------|-------|
 | `String` | `string` | |
-| `i64`, `f64` | `number` | |
+| `core_web::ids::SnowflakeId` | `string` | Canonical API identifier type (`id`, `*_id`) |
+| `i64`, `u64`, `i128`, `u128` | `bigint` | Default ts-rs mapping for raw integers; prefer `#[ts(type = "number")]` for non-ID counts/sizes |
+| `f32`, `f64`, `i32`, `u32` | `number` | |
 | `bool` | `boolean` | |
 | `Option<T>` | `T \| null` | |
 | `Vec<T>` | `T[]` | |
-| `time::OffsetDateTime` | `string` | Use `#[ts(type = "string")]` |
-| `UsernameString` (newtype) | `string` | Use `#[ts(type = "string")]` |
-| `AdminType` (generated enum) | `AdminType` | Use `#[ts(type = "AdminType")]` |
+| `time::OffsetDateTime` | `string` | Use `#[ts(type = "string")]` (override-only case) |
+| `UsernameString` (newtype) | `string` | Auto via framework `TS` support |
+| `AdminType` (generated enum) | `AdminType` | Auto via generated enum `TS` support |
+| `generated::LocalizedText` | `LocalizedText` | Shared localized payload alias |
 | `#[serde(skip)]` field | omitted | ts-rs respects serde attrs |
 
 ## State Management (Zustand)
@@ -306,7 +350,8 @@ This means portals can have completely different visual styles while sharing ide
 
 | Component | Import | Description |
 |-----------|--------|-------------|
-| `TextInput` | `TextInputProps` | Text, email, password, search, url, tel, number + special `money` and `pin` types |
+| `TextInput` | `TextInputProps` | Text, email, password, search, url, tel, number + special `money`, `atm`, and `pin` types |
+| `TiptapInput` (`TapbitInput`) | `TiptapInputProps` | Rich text (WYSIWYG HTML) editor input |
 | `TextArea` | `TextAreaProps` | Multi-line text input |
 | `Select` | `SelectProps`, `SelectOption` | Dropdown with typed options |
 | `Checkbox` | `CheckboxProps` | Single checkbox with label |
@@ -315,13 +360,19 @@ This means portals can have completely different visual styles while sharing ide
 ### Usage
 
 ```tsx
-import { TextInput, TextArea, Select, Checkbox, Radio } from "@shared/components";
+import { TextInput, TiptapInput, TextArea, Select, Checkbox, Radio } from "@shared/components";
 
 // Basic text input with error
 <TextInput label="Email" type="email" required error={errors.email} />
 
 // Money input — displays formatted (1,234.56), onChange emits raw numeric string
 <TextInput label="Amount" type="money" onChange={(e) => setAmount(e.target.value)} />
+
+// Rich text editor input (for custom form wiring)
+<TiptapInput label="Description" value={html} onChange={(e) => setHtml(e.target.value)} />
+
+// ATM input — digit keypad style (1 -> 0.01, 12 -> 0.12, 123 -> 1.23)
+<TextInput label="Amount" type="atm" onChange={(e) => setAmount(e.target.value)} />
 
 // PIN input — renders as password field, strips non-digits, numeric keyboard
 <TextInput label="PIN" type="pin" maxLength={6} />
@@ -371,7 +422,94 @@ All components follow the same pattern:
 ### Special TextInput Types
 
 - **`money`**: Formats display value with commas (`1,234.56`), emits raw numeric string via `onChange`, uses `inputMode="decimal"` for mobile numeric keyboard
+- **`atm`**: ATM keypad style input (`1 -> 0.01`, `12 -> 0.12`, `123 -> 1.23`), emits normalized decimal string via `onChange`, uses `inputMode="numeric"`
 - **`pin`**: Renders as `type="password"`, strips non-digit characters, uses `inputMode="numeric"` for mobile numeric keyboard
+
+`useAutoForm` rich editor field types:
+- **`tapbit`** and **`tiptap`** are aliases for the same TipTap HTML editor input.
+
+## DataTable Usage (Shared Component)
+
+Use `DataTable` from `src/shared/components/DataTable.tsx` as the single table primitive in portal pages.
+
+Do:
+- Wrap each portal app once with `DataTableApiProvider` in `{portal}/main.tsx`.
+- Pass only relative datatable paths from portal API root, e.g. `url="datatable/admin/query"`.
+- Define `columns` and return only cell content from `render` (`string` or JSX/ReactNode).
+- Keep summary/extra calls in `onPostCall` with request dedupe guard when needed.
+
+Don't:
+- Do not pass raw Axios clients into each table instance.
+- Do not return `<td>` from `render` (DataTable wraps cells internally).
+- Do not issue uncontrolled duplicate `onPostCall` side requests.
+
+Good:
+```tsx
+<DataTable<AdminDatatableRow>
+  url="datatable/admin/query"
+  columns={[
+    { key: "username", label: t("Username"), render: (row) => row.username },
+    { key: "created_at", label: t("Created At"), render: (row) => formatDateTime(row.created_at) },
+  ]}
+/>
+```
+
+Bad:
+```tsx
+<DataTable
+  url="/api/v1/admin/datatable/admin/query"
+  columns={[{
+    key: "username",
+    label: "Username",
+    render: (row) => <td>{row.username}</td>, // wrong: DataTable already renders <td>
+  }]}
+/>
+```
+
+## Modal Store Pattern (Sticky Footer)
+
+`useModalStore` already supports header/body/footer shell:
+- Header: title + close button
+- Body: scrollable content area
+- Footer: sticky action bar
+
+Rule:
+- Put only form/detail content inside `content`.
+- Put action buttons (`Cancel`, `Save`, `Close`) in modal `footer`.
+- For form submission, set a stable form `id` in content and trigger submit from footer button via `form="<id>"`.
+
+Good:
+```tsx
+const formId = `profile-form-${Date.now()}`;
+useModalStore.getState().open({
+  title: t("Edit Profile"),
+  size: "lg",
+  content: <ProfileModal formId={formId} account={account} onUpdated={setAccount} />,
+  footer: (
+    <>
+      <Button type="button" variant="secondary" onClick={() => useModalStore.getState().close()}>
+        {t("Cancel")}
+      </Button>
+      <Button type="submit" form={formId} variant="primary">
+        {t("Save")}
+      </Button>
+    </>
+  ),
+});
+```
+
+Bad:
+```tsx
+useModalStore.getState().open({
+  title: t("Edit Profile"),
+  content: (
+    <form>
+      {form}
+      <div className="flex justify-end gap-2">{/* inline actions in body */}</div>
+    </form>
+  ),
+});
+```
 
 ### CSS Class Reference
 

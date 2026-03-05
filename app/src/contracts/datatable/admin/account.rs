@@ -2,29 +2,43 @@ use core_web::datatable::{
     DataTableFilterFieldDto, DataTableFilterFieldType, DataTableGenericEmailExportRequest,
     DataTableGenericQueryRequest, DataTableScopedContract,
 };
+use core_web::ids::SnowflakeId;
 use generated::models::AdminType;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+pub const SCOPED_KEY: &str = "admin.account";
+pub const ROUTE_PREFIX: &str = "/datatable/admin";
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, TS)]
 #[ts(export, export_to = "admin/types/")]
 pub struct AdminDatatableRow {
-    pub id: i64,
+    pub id: SnowflakeId,
+    pub identity: String,
     pub username: String,
     pub email: Option<String>,
     pub name: String,
-    #[ts(type = "AdminType")]
     pub admin_type: AdminType,
     #[serde(default)]
-    #[ts(type = "string[]")]
     pub abilities: Vec<String>,
-    #[schemars(with = "String")]
-    #[ts(type = "string")]
     pub created_at: String,
-    #[schemars(with = "String")]
-    #[ts(type = "string")]
     pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, TS)]
+#[ts(export, export_to = "admin/types/")]
+pub struct AdminDatatableSummaryOutput {
+    #[ts(type = "number")]
+    pub total_admin_counts: i64,
+    #[ts(type = "number")]
+    pub total_filtered: i64,
+    #[ts(type = "number")]
+    pub developer_count: i64,
+    #[ts(type = "number")]
+    pub superadmin_count: i64,
+    #[ts(type = "number")]
+    pub admin_count: i64,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -36,7 +50,7 @@ impl DataTableScopedContract for AdminAdminDataTableContract {
     type Row = AdminDatatableRow;
 
     fn scoped_key(&self) -> &'static str {
-        "admin.account"
+        SCOPED_KEY
     }
 
     fn openapi_tag(&self) -> &'static str {

@@ -2,7 +2,7 @@ export type LocaleCode = "en" | "zh";
 export const DEFAULT_LOCALE: LocaleCode = "en";
 
 // Localized text payload generated from app language settings.
-export type MultiLang<TLocale extends string = LocaleCode> = Record<TLocale, string>;
+export type LocalizedText<TLocale extends string = LocaleCode> = Record<TLocale, string>;
 
 // field -> owner_id -> locale -> value
 export type LocalizedMap<TLocale extends string = LocaleCode> = Record<
@@ -40,6 +40,7 @@ export type AttachmentInput = AttachmentUploadDto;
 export interface Attachment {
   id: string;
   path: string;
+  url: string;
   content_type: string;
   size: number;
   width: number | null;
@@ -49,3 +50,40 @@ export interface Attachment {
 
 // field -> owner_id -> attachments
 export type AttachmentMap = Record<string, Record<number, Attachment[]>>;
+
+export type CountryStatus = "enabled" | "disabled";
+
+export interface CountryCurrency {
+  code: string;
+  name?: string | null;
+  symbol?: string | null;
+  minor_units?: number | null;
+}
+
+export interface CountryRuntime {
+  iso2: string;
+  iso3: string;
+  iso_numeric?: string | null;
+  name: string;
+  official_name?: string | null;
+  capital?: string | null;
+  capitals: string[];
+  region?: string | null;
+  subregion?: string | null;
+  currencies: CountryCurrency[];
+  primary_currency_code?: string | null;
+  calling_code?: string | null;
+  calling_root?: string | null;
+  calling_suffixes: string[];
+  tlds: string[];
+  timezones: string[];
+  latitude?: number | null;
+  longitude?: number | null;
+  independent?: boolean | null;
+  status: CountryStatus;
+  assignment_status?: string | null;
+  un_member?: boolean | null;
+  flag_emoji?: string | null;
+  created_at: string;
+  updated_at: string;
+}

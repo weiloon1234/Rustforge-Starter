@@ -1,6 +1,133 @@
-import { Menu, LogOut } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Menu,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  User,
+  Shield,
+  LogOut,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
+import type { AdminMeOutput, AdminProfileUpdateOutput } from "@admin/types";
+import {
+  Button,
+  useAutoForm,
+  useLocaleStore,
+  useModalStore,
+  alertError,
+  alertSuccess,
+} from "@shared/components";
 import { useAuthStore } from "@admin/stores/auth";
+import { api } from "@admin/api";
+import type { LocaleCode } from "@shared/types/platform";
+import { adminLocalePersistence } from "@admin/locale";
+
+function ProfileModal({
+  account,
+  onUpdated,
+  formId,
+}: {
+  account: AdminMeOutput;
+  onUpdated: (next: AdminProfileUpdateOutput) => void;
+  formId: string;
+}) {
+  const { t } = useTranslation();
+  const close = useModalStore((s) => s.close);
+  const { submit, form, errors } = useAutoForm(api, {
+    url: "auth/profile_update",
+    method: "patch",
+    fields: [
+      {
+        name: "name",
+        type: "text",
+        label: t("Name"),
+        placeholder: t("Enter full name"),
+        required: true,
+      },
+      {
+        name: "email",
+        type: "email",
+        label: t("Email"),
+        placeholder: t("Enter email"),
+        required: false,
+      },
+    ],
+    defaults: {
+      name: account.name,
+      email: account.email ?? "",
+    },
+    onSuccess: (data) => {
+      onUpdated(data as AdminProfileUpdateOutput);
+      close();
+      void alertSuccess({
+        title: t("Success"),
+        message: t("Profile updated successfully"),
+      });
+    },
+  });
+
+  return (
+    <form id={formId} onSubmit={submit} className="space-y-4">
+      {errors.general && (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+          {errors.general}
+        </p>
+      )}
+      {form}
+    </form>
+  );
+}
+
+function SecurityModal({ formId }: { formId: string }) {
+  const { t } = useTranslation();
+  const close = useModalStore((s) => s.close);
+  const { submit, form, errors } = useAutoForm(api, {
+    url: "auth/password_update",
+    method: "patch",
+    fields: [
+      {
+        name: "current_password",
+        type: "password",
+        label: t("Current Password"),
+        placeholder: t("Enter current password"),
+        required: true,
+      },
+      {
+        name: "password",
+        type: "password",
+        label: t("New Password"),
+        placeholder: t("Enter password"),
+        required: true,
+      },
+      {
+        name: "password_confirmation",
+        type: "password",
+        label: t("Confirm Password"),
+        placeholder: t("Confirm new password"),
+        required: true,
+      },
+    ],
+    onSuccess: () => {
+      close();
+      void alertSuccess({
+        title: t("Success"),
+        message: t("Password updated successfully"),
+      });
+    },
+  });
+
+  return (
+    <form id={formId} onSubmit={submit} className="space-y-4">
+      {errors.general && (
+        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+          {errors.general}
+        </p>
+      )}
+      {form}
+    </form>
+  );
+}
 
 export default function Header({
   collapsed,
@@ -11,29 +138,215 @@ export default function Header({
 }) {
   const { t } = useTranslation();
   const account = useAuthStore((s) => s.account);
+  const setAccount = useAuthStore((s) => s.setAccount);
   const logout = useAuthStore((s) => s.logout);
+  const locale = useLocaleStore((s) => s.locale);
+  const defaultLocale = useLocaleStore((s) => s.defaultLocale);
+  const availableLocales = useLocaleStore((s) => s.availableLocales);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  const localeOptions = useMemo<LocaleCode[]>(() => {
+    if (availableLocales.length > 0) return availableLocales;
+    return [defaultLocale];
+  }, [availableLocales, defaultLocale]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const onClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (!dropdownRef.current?.contains(target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", onClickOutside);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onClickOutside);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuOpen]);
+
+  const openProfileModal = () => {
+    if (!account) return;
+    setMenuOpen(false);
+    const formId = `admin-profile-form-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    useModalStore.getState().open({
+      title: t("Edit Profile"),
+      size: "lg",
+      content: (
+        <ProfileModal
+          formId={formId}
+          account={account}
+          onUpdated={(next) =>
+            setAccount({
+              ...account,
+              ...next,
+              scopes: account.scopes,
+            })
+          }
+        />
+      ),
+      footer: (
+        <>
+          <Button
+            type="button"
+            onClick={() => useModalStore.getState().close()}
+            variant="secondary"
+          >
+            {t("Cancel")}
+          </Button>
+          <Button type="submit" form={formId} variant="primary">
+            {t("Save")}
+          </Button>
+        </>
+      ),
+    });
+  };
+
+  const openSecurityModal = () => {
+    setMenuOpen(false);
+    const formId = `admin-security-form-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    useModalStore.getState().open({
+      title: t("Account Security"),
+      size: "lg",
+      content: <SecurityModal formId={formId} />,
+      footer: (
+        <>
+          <Button
+            type="button"
+            onClick={() => useModalStore.getState().close()}
+            variant="secondary"
+          >
+            {t("Cancel")}
+          </Button>
+          <Button type="submit" form={formId} variant="primary">
+            {t("Save")}
+          </Button>
+        </>
+      ),
+    });
+  };
+
+  const handleLocaleChange = async (nextLocale: LocaleCode) => {
+    const result = await adminLocalePersistence.changeAndPersist(nextLocale);
+    if (!result.ok) {
+      void alertError({
+        title: t("Error"),
+        message: t("Failed to update locale."),
+      });
+    }
+    setMenuOpen(false);
+  };
+
+  const handleLogout = async () => {
+    setMenuOpen(false);
+    try {
+      await api.post("auth/logout", { client_type: "web" });
+    } catch {
+      // Always clear local auth state even if revoke call fails.
+    } finally {
+      logout();
+      window.location.href = "/admin/login";
+    }
+  };
+
+  const accountName = account?.name ?? t("Admin");
 
   return (
     <header className="rf-header">
-      <button
+      <Button
         onClick={onToggle}
+        variant="plain"
+        size="sm"
+        iconOnly
         className="rounded-lg p-2 text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
         aria-label={collapsed ? t("Expand sidebar") : t("Collapse sidebar")}
       >
         <Menu size={20} />
-      </button>
+      </Button>
 
       <div className="flex-1" />
 
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted">{account?.name ?? t("Admin")}</span>
-        <button
-          onClick={() => logout()}
-          className="rounded-lg p-2 text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
-          aria-label={t("Logout")}
+      <div ref={dropdownRef} className="relative">
+        <Button
+          type="button"
+          onClick={() => setMenuOpen((open) => !open)}
+          variant="plain"
+          size="sm"
+          className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-surface-hover hover:text-foreground"
+          aria-label={t("Open account menu")}
+          aria-expanded={menuOpen}
         >
-          <LogOut size={18} />
-        </button>
+          <span>{accountName}</span>
+          {menuOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </Button>
+
+        {menuOpen && (
+          <div className="absolute right-0 z-40 mt-2 w-72 rounded-xl border border-border bg-surface p-2 shadow-xl">
+            <p className="px-2 py-1 text-xs font-medium uppercase tracking-wide text-muted">
+              {t("Language")}
+            </p>
+            <div className="mb-2 space-y-1">
+              {localeOptions.map((code) => (
+                <Button
+                  key={code}
+                  type="button"
+                  onClick={() => void handleLocaleChange(code)}
+                  variant="plain"
+                  size="sm"
+                  className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-sm transition-colors hover:bg-surface-hover"
+                >
+                  <span>{t(`Locale ${code.toUpperCase()}`)}</span>
+                  {locale === code && (
+                    <Check size={16} className="text-primary" />
+                  )}
+                </Button>
+              ))}
+            </div>
+
+            <div className="my-2 border-t border-border" />
+
+            <Button
+              type="button"
+              onClick={openProfileModal}
+              variant="plain"
+              size="sm"
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-surface-hover"
+            >
+              <User size={16} />
+              {t("Edit Profile")}
+            </Button>
+            <Button
+              type="button"
+              onClick={openSecurityModal}
+              variant="plain"
+              size="sm"
+              className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-surface-hover"
+            >
+              <Shield size={16} />
+              {t("Account Security")}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => void handleLogout()}
+              variant="plain"
+              size="sm"
+              className="mt-1 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-surface-hover"
+            >
+              <LogOut size={16} />
+              {t("Logout")}
+            </Button>
+          </div>
+        )}
       </div>
     </header>
   );

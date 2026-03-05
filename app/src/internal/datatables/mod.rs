@@ -1,3 +1,1 @@
-include!("mod.generated.rs");
-
-pub mod portal;
+pub mod v1;

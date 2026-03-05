@@ -1,32 +1,69 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
+use axum::extract::State;
 use axum::http::HeaderMap;
 use core_datatable::{
     DataTableActor, DataTableAsyncExportManager, DataTableContext, DataTableRegistry,
 };
 use core_db::infra::storage::Storage;
+use core_i18n::t;
 use core_web::auth::Guard;
 use core_web::datatable::{
-    DataTableEmailExportManager, DataTableRouteOptions, DataTableRouteState,
+    DataTableEmailExportManager, DataTableGenericQueryRequest, DataTableQueryRequestContract,
+    DataTableRouteState,
 };
-use core_web::openapi::ApiRouter;
+use core_web::error::AppError;
+use core_web::openapi::{aide::axum::routing::post_with, ApiRouter};
+use core_web::{contracts::ContractJson, response::ApiResponse};
 use serde_json::Value;
 
 use generated::guards::AdminGuard;
+use generated::models::AdminDataTableHooks;
 
-use crate::contracts::datatable::admin::account::AdminAdminDataTableContract;
+use crate::contracts::datatable::admin::account::{
+    AdminDatatableSummaryOutput, SCOPED_KEY as ADMIN_ACCOUNT_SCOPED_KEY,
+};
 use crate::internal::api::state::AppApiState;
 
 pub fn router(state: AppApiState) -> ApiRouter {
-    core_web::datatable::routes_for_scoped_contract_with_options(
-        "/datatable/admin",
-        state,
-        AdminAdminDataTableContract,
-        DataTableRouteOptions {
-            require_bearer_auth: true,
-        },
-    )
+    let scoped_datatable_routes =
+        crate::internal::datatables::v1::admin::mount_scoped_datatable_routes(state.clone());
+    let summary_route = ApiRouter::new()
+        .api_route(
+            "/datatable/admin/summary",
+            post_with(admin_summary, |op| {
+                op.summary("Datatable summary")
+                    .tag("Admin Account")
+                    .description("Returns filtered cross-page summary cards for admin datatable.")
+            }),
+        )
+        .with_state(state);
+
+    scoped_datatable_routes.merge(summary_route)
+}
+
+async fn admin_summary(
+    State(state): State<AppApiState>,
+    headers: core_web::extract::request_headers::RequestHeaders,
+    req: ContractJson<DataTableGenericQueryRequest>,
+) -> Result<ApiResponse<AdminDatatableSummaryOutput>, AppError> {
+    let mut input = req.0.datatable_query_to_input();
+    input.model = Some(ADMIN_ACCOUNT_SCOPED_KEY.to_string());
+
+    let ctx = state.datatable_context(&headers).await;
+    let hooks = crate::internal::datatables::v1::admin::AdminDataTableAppHooks::default();
+    if !hooks.authorize(&input, &ctx)? {
+        return Err(AppError::Forbidden(t(
+            "You are not allowed to query this datatable",
+        )));
+    }
+
+    let summary =
+        crate::internal::datatables::v1::admin::build_admin_summary_output(&state.db, &input, &ctx)
+            .await?;
+
+    Ok(ApiResponse::success(summary, &t("datatable summary")))
 }
 
 #[async_trait]

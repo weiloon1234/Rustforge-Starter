@@ -45,6 +45,93 @@
     @apply border-error hover:border-error focus:ring-error/40 focus:border-error;
   }
 
+  .rf-picker {
+    @apply relative;
+  }
+  .react-datepicker-wrapper,
+  .react-datepicker__input-container {
+    @apply block w-full;
+  }
+  .rf-picker-input {
+    @apply pr-10;
+  }
+  .rf-picker-icon {
+    @apply pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted;
+  }
+  .rf-picker-popper {
+    z-index: 1200 !important;
+  }
+  .react-datepicker-popper {
+    z-index: 1200 !important;
+  }
+  .rf-picker-calendar {
+    @apply rounded-xl border shadow-xl;
+    background-color: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-foreground) !important;
+    font-family: inherit;
+  }
+  .rf-picker-calendar .react-datepicker {
+    background-color: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-foreground) !important;
+  }
+  .rf-picker-calendar .react-datepicker__header {
+    background-color: var(--color-surface) !important;
+    border-bottom-color: var(--color-border) !important;
+  }
+  .rf-picker-calendar .react-datepicker__current-month,
+  .rf-picker-calendar .react-datepicker-time__header,
+  .rf-picker-calendar .react-datepicker-year-header,
+  .rf-picker-calendar .react-datepicker__day-name {
+    color: var(--color-foreground) !important;
+  }
+  .rf-picker-calendar .react-datepicker__day,
+  .rf-picker-calendar .react-datepicker__time-name,
+  .rf-picker-calendar .react-datepicker__time-list-item {
+    color: var(--color-foreground) !important;
+    background-color: transparent !important;
+  }
+  .rf-picker-calendar .react-datepicker__day:hover,
+  .rf-picker-calendar .react-datepicker__time-list-item:hover,
+  .rf-picker-calendar .react-datepicker__month-text:hover,
+  .rf-picker-calendar .react-datepicker__quarter-text:hover,
+  .rf-picker-calendar .react-datepicker__year-text:hover {
+    background-color: var(--color-surface-hover) !important;
+    color: var(--color-foreground) !important;
+    border-radius: 0.375rem;
+  }
+  .rf-picker-calendar .react-datepicker__day--selected,
+  .rf-picker-calendar .react-datepicker__day--keyboard-selected,
+  .rf-picker-calendar .react-datepicker__month-text--selected,
+  .rf-picker-calendar .react-datepicker__quarter-text--selected,
+  .rf-picker-calendar .react-datepicker__year-text--selected,
+  .rf-picker-calendar .react-datepicker__time-list-item--selected {
+    background-color: var(--color-primary) !important;
+    color: var(--color-primary-foreground) !important;
+    border-radius: 0.375rem;
+  }
+  .rf-picker-calendar .react-datepicker__day--outside-month {
+    color: var(--color-muted) !important;
+  }
+  .rf-picker-calendar .react-datepicker__navigation-icon::before {
+    border-color: var(--color-muted) !important;
+  }
+  .rf-picker-calendar .react-datepicker__triangle {
+    @apply hidden;
+  }
+  .rf-picker-calendar .react-datepicker__time-container,
+  .rf-picker-calendar .react-datepicker__time,
+  .rf-picker-calendar .react-datepicker__time-box,
+  .rf-picker-calendar .react-datepicker__time-list,
+  .rf-picker-calendar .react-datepicker__month-container {
+    background-color: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+  }
+  .rf-picker-calendar .react-datepicker__time-list {
+    scrollbar-color: var(--color-border) transparent;
+  }
+
   .rf-textarea {
     @apply w-full rounded-lg border border-input-border bg-input px-3 py-2 text-sm text-foreground
       placeholder:text-input-placeholder transition-colors duration-150
@@ -53,6 +140,111 @@
   }
   .rf-textarea-error {
     @apply border-error hover:border-error focus:ring-error/40 focus:border-error;
+  }
+
+  .rf-rich {
+    @apply rounded-lg border border-input-border bg-input transition-colors duration-150;
+  }
+  .rf-rich:hover {
+    @apply border-input-border-hover;
+  }
+  .rf-rich:focus-within {
+    @apply border-input-focus ring-2 ring-ring/40;
+  }
+  .rf-rich-error {
+    @apply border-error;
+  }
+  .rf-rich-toolbar {
+    @apply flex items-center gap-1 border-b border-input-border px-2 py-1.5;
+  }
+  .rf-rich-btn {
+    @apply inline-flex h-7 w-7 items-center justify-center rounded text-muted transition-colors duration-150 hover:bg-surface-hover hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .rf-rich-btn-active {
+    @apply bg-primary text-primary-foreground hover:bg-primary;
+  }
+  .rf-rich-divider {
+    @apply mx-1 h-5 w-px bg-border;
+  }
+  .rf-rich-editor {
+    @apply min-h-32 px-3 py-2 text-sm text-foreground;
+  }
+  .rf-rich-editor .ProseMirror {
+    @apply min-h-28 outline-none;
+  }
+  .rf-rich-editor .ProseMirror p.is-editor-empty:first-child::before {
+    color: var(--color-input-placeholder);
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+  .rf-rich-editor .ProseMirror p {
+    @apply mb-2;
+  }
+  .rf-rich-editor .ProseMirror ul {
+    @apply list-disc pl-5;
+  }
+  .rf-rich-editor .ProseMirror ol {
+    @apply list-decimal pl-5;
+  }
+  .rf-rich-editor .ProseMirror h2 {
+    @apply mb-2 mt-3 text-lg font-semibold;
+  }
+  .rf-rich-editor .ProseMirror h3 {
+    @apply mb-2 mt-3 text-base font-semibold;
+  }
+  .rf-rich-editor .ProseMirror blockquote {
+    @apply my-2 border-l-4 border-border pl-3 text-muted;
+  }
+  .rf-rich-editor .ProseMirror code {
+    @apply rounded border border-border bg-surface-hover px-1 py-0.5 font-mono text-xs;
+  }
+  .rf-rich-editor .ProseMirror pre {
+    @apply my-2 overflow-x-auto rounded border border-border bg-surface-hover p-3;
+  }
+  .rf-rich-editor .ProseMirror pre code {
+    @apply block border-0 bg-transparent p-0;
+  }
+  .rf-rich-editor .ProseMirror hr {
+    @apply my-3 border-border;
+  }
+  .rf-rich-editor .ProseMirror a {
+    @apply text-primary underline;
+  }
+  .rf-rich-editor .ProseMirror img {
+    @apply my-2 h-auto max-w-full rounded;
+  }
+  .rf-rich-editor .ProseMirror table {
+    @apply my-2 w-full border-collapse overflow-hidden rounded;
+  }
+  .rf-rich-editor .ProseMirror th,
+  .rf-rich-editor .ProseMirror td {
+    @apply border border-border px-2 py-1 align-top;
+  }
+  .rf-rich-editor .ProseMirror th {
+    @apply bg-surface font-semibold;
+  }
+  .rf-rich-editor .ProseMirror ul[data-type="taskList"] {
+    @apply list-none pl-0;
+  }
+  .rf-rich-editor .ProseMirror ul[data-type="taskList"] > li {
+    @apply my-1 flex items-start gap-2;
+  }
+  .rf-rich-editor .ProseMirror ul[data-type="taskList"] > li > label {
+    @apply mt-0.5 flex items-center;
+  }
+  .rf-rich-editor .ProseMirror ul[data-type="taskList"] > li > div {
+    @apply min-w-0 flex-1;
+  }
+  .rf-rich-editor .ProseMirror ul[data-type="taskList"] > li > div > p {
+    @apply mb-0;
+  }
+  .rf-rich-btn-text {
+    @apply text-[11px] font-semibold leading-none;
+  }
+  .rf-rich-disabled {
+    @apply opacity-60;
   }
 
   .rf-select {
@@ -110,6 +302,95 @@
   .rf-error-message { @apply mt-1 text-xs text-error; }
   .rf-note { @apply mt-1 text-xs text-muted; }
   .rf-form-grid { @apply grid grid-cols-2 gap-x-4; }
+
+  /* ── Button ─────────────────────────────────────── */
+  .rf-btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-transparent font-medium
+      whitespace-nowrap transition-colors duration-150 select-none cursor-pointer;
+  }
+  .rf-btn:focus-visible {
+    @apply outline-none ring-2 ring-ring/40;
+  }
+  .rf-btn-size-xs { @apply h-8 min-w-8 px-2 text-xs; }
+  .rf-btn-size-sm { @apply h-8 px-3 text-sm; }
+  .rf-btn-size-md { @apply h-10 px-4 text-sm; }
+  .rf-btn-size-lg { @apply h-11 px-5 text-base; }
+  .rf-btn-icon { @apply aspect-square px-0; }
+  .rf-btn-spinner { @apply h-4 w-4 animate-spin; }
+  .rf-btn[disabled]:not([aria-busy="true"]) {
+    @apply cursor-not-allowed opacity-50;
+  }
+  .rf-btn[aria-busy="true"] {
+    @apply cursor-progress opacity-80;
+  }
+  .rf-btn-variant-primary {
+    @apply border-primary bg-primary text-primary-foreground hover:bg-primary-hover;
+  }
+  .rf-btn-variant-secondary {
+    @apply border-border bg-surface text-foreground hover:bg-surface-hover;
+  }
+  .rf-btn-variant-danger {
+    @apply border-error bg-error text-white hover:bg-error/90;
+  }
+  .rf-btn-variant-warning {
+    @apply border-warning/50 bg-warning-muted text-warning hover:bg-warning-muted/80;
+  }
+  .rf-btn-variant-error {
+    @apply border-error/50 bg-error-muted text-error hover:bg-error-muted/80;
+  }
+  .rf-btn-variant-success {
+    @apply border-success bg-success text-white hover:bg-success/90;
+  }
+  .rf-btn-variant-info {
+    @apply border-info bg-info text-white hover:bg-info/90;
+  }
+  .rf-btn-variant-plain {
+    @apply border-transparent bg-transparent text-muted hover:bg-surface-hover hover:text-foreground;
+  }
+
+  /* ── DataTable ─────────────────────────────────── */
+  .rf-dt-shell {
+    @apply overflow-hidden rounded-xl border border-border bg-surface;
+  }
+  .rf-dt-scroll {
+    @apply overflow-auto;
+    max-height: min(58vh, 40rem);
+  }
+  .rf-dt-table {
+    @apply min-w-full w-max text-left text-sm;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .rf-dt-head-row {
+    @apply bg-surface-hover/50;
+  }
+  .rf-dt-th {
+    @apply sticky top-0 z-20 whitespace-nowrap border-b border-border bg-surface-hover/95 px-4 py-3 font-medium text-muted;
+  }
+  .rf-dt-th-index {
+    @apply w-12;
+  }
+  .rf-dt-th-sortable {
+    @apply cursor-pointer select-none;
+  }
+  .rf-dt-row {
+    @apply hover:bg-surface-hover/30;
+  }
+  .rf-dt-td {
+    @apply whitespace-nowrap border-b border-border px-4 py-3 align-middle text-foreground;
+  }
+  .rf-dt-td-index {
+    @apply tabular-nums text-muted;
+  }
+  .rf-dt-empty-cell {
+    @apply px-4 py-8 text-center text-muted;
+  }
+  .rf-dt-foot {
+    @apply bg-surface-hover/20;
+  }
+  .rf-dt-table tbody tr:last-child .rf-dt-td {
+    @apply border-b-0;
+  }
 
   /* ── Modal ──────────────────────────────────────── */
   .rf-modal-backdrop {

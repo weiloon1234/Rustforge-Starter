@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { resolveLocaleHeader } from "@shared/localeHeader";
 
 export interface Account {
-  id: number;
+  id: string;
   name: string;
   email: string | null;
 }
@@ -13,6 +14,7 @@ export interface AuthState<A extends Account = Account> {
   isLoading: boolean;
   isInitialized: boolean;
   error: string | null;
+  setAccount: (account: A | null) => void;
   setToken: (token: string) => void;
   login: (credentials: Record<string, unknown>) => Promise<void>;
   logout: () => void;
@@ -54,6 +56,8 @@ export interface AuthConfig {
 export function createAuthStore<A extends Account = Account>(
   config: AuthConfig,
 ) {
+  let initSessionPromise: Promise<void> | null = null;
+
   return create<AuthState<A>>()(
     persist(
       (set, get) => ({
@@ -62,6 +66,8 @@ export function createAuthStore<A extends Account = Account>(
         isLoading: false,
         isInitialized: false,
         error: null,
+        setAccount: (account) =>
+          set({ account } as Partial<AuthState<A>>),
 
         setToken: (token: string) =>
           set({ token } as Partial<AuthState<A>>),
@@ -71,7 +77,10 @@ export function createAuthStore<A extends Account = Account>(
           try {
             const res = await fetch(config.loginEndpoint, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: {
+                "Content-Type": "application/json",
+                "X-Locale": resolveLocaleHeader(),
+              },
               credentials: "include",
               body: JSON.stringify({ ...credentials, client_type: "web" }),
             });
@@ -102,24 +111,29 @@ export function createAuthStore<A extends Account = Account>(
           set({ isLoading: true } as Partial<AuthState<A>>);
           try {
             const res = await fetch(config.meEndpoint, {
-              headers: { Authorization: `Bearer ${token}` },
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "X-Locale": resolveLocaleHeader(),
+              },
+              credentials: "include",
             });
             if (!res.ok) throw new Error("Failed to fetch account");
             const { data } = await res.json();
             set({ account: data, isLoading: false } as Partial<AuthState<A>>);
-          } catch {
-            set({
-              account: null,
-              token: null,
-              isLoading: false,
-            } as Partial<AuthState<A>>);
+          } catch (error) {
+            // Let caller decide whether to refresh, clear session, or retry.
+            set({ account: null, isLoading: false } as Partial<AuthState<A>>);
+            throw error;
           }
         },
 
         refreshToken: async () => {
           const res = await fetch(config.refreshEndpoint, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              "X-Locale": resolveLocaleHeader(),
+            },
             credentials: "include",
             body: JSON.stringify({ client_type: "web" }),
           });
@@ -132,28 +146,50 @@ export function createAuthStore<A extends Account = Account>(
         },
 
         initSession: async () => {
-          const { token, isInitialized } = get();
-          if (isInitialized) return;
-          if (!token) {
-            set({ isInitialized: true } as Partial<AuthState<A>>);
+          if (initSessionPromise) {
+            await initSessionPromise;
             return;
           }
-          try {
-            await get().fetchAccount();
-          } catch {
-            // Access token expired — try refresh
+
+          const { token, isInitialized } = get();
+          if (isInitialized) return;
+
+          initSessionPromise = (async () => {
+            if (!token) {
+              set({ isInitialized: true } as Partial<AuthState<A>>);
+              return;
+            }
             try {
-              await get().refreshToken();
               await get().fetchAccount();
             } catch {
-              // Refresh also failed — session is gone
-              set({ account: null, token: null } as Partial<AuthState<A>>);
+              // Access token expired — try refresh
+              try {
+                await get().refreshToken();
+                await get().fetchAccount();
+              } catch {
+                // Refresh also failed — session is gone
+                set({ account: null, token: null } as Partial<AuthState<A>>);
+              }
             }
+            set({ isInitialized: true } as Partial<AuthState<A>>);
+          })();
+
+          try {
+            await initSessionPromise;
+          } finally {
+            initSessionPromise = null;
           }
-          set({ isInitialized: true } as Partial<AuthState<A>>);
         },
       }),
-      { name: config.storageKey },
+      {
+        name: config.storageKey,
+        // Persist durable session data only.
+        // Runtime flags are recomputed on each app boot.
+        partialize: (state) => ({
+          account: state.account,
+          token: state.token,
+        }),
+      },
     ),
   );
 }

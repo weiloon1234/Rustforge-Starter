@@ -5,6 +5,10 @@ use crate::internal::api::{datatable, state::AppApiState};
 
 mod account;
 mod auth;
+mod content_page;
+mod content_page_multipart;
+mod country;
+mod tiptap_upload;
 
 pub fn router(state: AppApiState) -> ApiRouter {
     ApiRouter::new()
@@ -21,6 +25,9 @@ fn guarded_router(state: AppApiState) -> ApiRouter {
             }),
         )
         .nest("/admins", account::router(state.clone()))
+        .nest("/countries", country::router(state.clone()))
+        .nest("/content_page", content_page::router(state.clone()))
+        .nest("/uploads", tiptap_upload::router(state.clone()))
         .merge(datatable::router(state.clone()))
         .layer(from_fn_with_state(
             state,

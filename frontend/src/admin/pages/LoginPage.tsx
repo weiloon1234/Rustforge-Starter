@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAutoForm } from "@shared/useAutoForm";
+import { Button } from "@shared/components";
 import { useAuthStore } from "@admin/stores/auth";
 import { api } from "@admin/api";
 import type { AdminAuthOutput } from "@admin/types";
@@ -9,10 +10,9 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const setToken = useAuthStore((s) => s.setToken);
-  const fetchAccount = useAuthStore((s) => s.fetchAccount);
 
   const { submit, busy, form, errors } = useAutoForm(api, {
-    url: "/api/v1/admin/auth/login",
+    url: "auth/login",
     method: "post",
     extraPayload: { client_type: "web" },
     fields: [
@@ -36,8 +36,7 @@ export default function LoginPage() {
     onSuccess: async (data: unknown) => {
       const result = data as AdminAuthOutput;
       setToken(result.access_token);
-      await fetchAccount();
-      navigate("/");
+      navigate("/", { replace: true });
     },
   });
 
@@ -62,15 +61,14 @@ export default function LoginPage() {
 
           {form}
 
-          <button
+          <Button
             onClick={submit}
-            disabled={busy}
-            className="mt-2 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium
-              text-primary-foreground transition-colors hover:bg-primary-hover
-              disabled:opacity-50 disabled:cursor-not-allowed"
+            busy={busy}
+            variant="primary"
+            className="mt-2 w-full"
           >
             {busy ? t("Signing in...") : t("Sign in")}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

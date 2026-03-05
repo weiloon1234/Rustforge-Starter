@@ -75,6 +75,22 @@ export function moneyFormat(value: number, decimals: number = 2): string {
   });
 }
 
+const ABSOLUTE_URL_PATTERN = /^[a-zA-Z][a-zA-Z\d+\-.]*:/;
+
+export function attachmentUrl(
+  path: string | null | undefined,
+  baseUrl: string | null | undefined = import.meta.env.VITE_S3_URL,
+): string {
+  const raw = (path ?? "").trim();
+  if (!raw) return "";
+  if (raw.startsWith("//") || ABSOLUTE_URL_PATTERN.test(raw)) return raw;
+
+  const base = (baseUrl ?? "").trim().replace(/\/+$/, "");
+  if (!base) return raw;
+
+  return `${base}/${raw.replace(/^\/+/, "")}`;
+}
+
 /**
  * Converts a UTC/server timestamp string to the browser's local timezone.
  *
@@ -84,10 +100,41 @@ export function moneyFormat(value: number, decimals: number = 2): string {
  *                 Default: "Y-m-d h:i:s A"
  * @returns Formatted local date string, or "—" if the value is empty/invalid.
  */
+function parseDateTime(value: string): Date | null {
+  const raw = value.trim();
+  if (!raw) return null;
+
+  let parsed = new Date(raw);
+  if (!isNaN(parsed.getTime())) return parsed;
+
+  // Handle backend format: "YYYY-MM-DD HH:mm:ss(.fraction) +08:00:00"
+  // JS Date expects ISO 8601, and offset should be "+08:00" (no seconds).
+  const spacedWithOffset = raw.match(
+    /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2}(?:\.\d+)?)\s+([+-]\d{2}:\d{2})(?::\d{2})?$/,
+  );
+  if (spacedWithOffset) {
+    const iso = `${spacedWithOffset[1]}T${spacedWithOffset[2]}${spacedWithOffset[3]}`;
+    parsed = new Date(iso);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+
+  // Handle backend format without explicit timezone: treat as UTC.
+  const spacedNoOffset = raw.match(
+    /^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2}(?:\.\d+)?)$/,
+  );
+  if (spacedNoOffset) {
+    const isoUtc = `${spacedNoOffset[1]}T${spacedNoOffset[2]}Z`;
+    parsed = new Date(isoUtc);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+
+  return null;
+}
+
 export function formatDateTime(value: string | null | undefined, format: string = "Y-m-d h:i:s A"): string {
   if (!value) return "—";
-  const date = new Date(value);
-  if (isNaN(date.getTime())) return "—";
+  const date = parseDateTime(value);
+  if (!date) return "—";
 
   const pad = (n: number) => String(n).padStart(2, "0");
   const hours24 = date.getHours();

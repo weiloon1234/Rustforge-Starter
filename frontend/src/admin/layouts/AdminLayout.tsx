@@ -3,6 +3,8 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "@admin/components/Sidebar";
 import Header from "@admin/components/Header";
 import { ModalOutlet } from "@shared/components";
+import { useAuthStore } from "@admin/stores/auth";
+import { adminLocalePersistence } from "@admin/locale";
 
 const STORAGE_KEY = "admin-sidebar-collapsed";
 const MOBILE_BREAKPOINT = 768;
@@ -24,6 +26,7 @@ export default function AdminLayout() {
     return localStorage.getItem(STORAGE_KEY) === "true";
   });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const account = useAuthStore((s) => s.account);
 
   useEffect(() => {
     if (!isMobile) localStorage.setItem(STORAGE_KEY, String(collapsed));
@@ -33,6 +36,10 @@ export default function AdminLayout() {
   useEffect(() => {
     if (isMobile) setMobileOpen(false);
   }, [isMobile]);
+
+  useEffect(() => {
+    void adminLocalePersistence.syncFromAccount(account);
+  }, [account]);
 
   const toggleSidebar = useCallback(() => {
     if (isMobile) {

@@ -4,12 +4,12 @@ pub mod v1;
 
 use std::sync::Arc;
 
-use axum::{routing::get as axum_get, Json, Router, response::Html};
+use axum::{extract::State, http::header, response::Html, routing::get as axum_get, Json, Router};
 use bootstrap::boot::BootContext;
+use core_db::platform::countries::Country;
+use core_web::error::AppError;
 use core_web::openapi::{
-    aide::{
-        openapi::{Info, OpenApi},
-    },
+    aide::openapi::{Info, OpenApi},
     ApiRouter,
 };
 use tower_http::services::{ServeDir, ServeFile};
@@ -19,7 +19,7 @@ use state::AppApiState;
 pub async fn build_router(ctx: BootContext) -> anyhow::Result<Router> {
     let app_state = AppApiState::new(&ctx)?;
 
-    let api_router = ApiRouter::new().nest("/api/v1", v1::router(app_state));
+    let api_router = ApiRouter::new().nest("/api/v1", v1::router(app_state.clone()));
 
     let mut api = OpenApi::default();
     api.info = Info {
@@ -46,6 +46,11 @@ pub async fn build_router(ctx: BootContext) -> anyhow::Result<Router> {
             }),
         );
     }
+
+    router = router.route(
+        "/api/bootstrap.js",
+        axum_get(bootstrap_script).with_state(app_state.clone()),
+    );
 
     let public_path = core_web::static_assets::public_path_from_env();
 
@@ -74,12 +79,14 @@ pub async fn build_router(ctx: BootContext) -> anyhow::Result<Router> {
 }
 
 async fn root() -> Html<&'static str> {
-    Html(r#"<!doctype html>
+    Html(
+        r#"<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>App</title>
+    <script src="/api/bootstrap.js"></script>
     <script type="module" src="http://localhost:5173/@vite/client"></script>
     <script type="module">
       import RefreshRuntime from "http://localhost:5173/@react-refresh"
@@ -93,16 +100,19 @@ async fn root() -> Html<&'static str> {
     <div id="root"></div>
     <script type="module" src="http://localhost:5173/src/user/main.tsx"></script>
   </body>
-</html>"#)
+</html>"#,
+    )
 }
 
 async fn admin_dev() -> Html<&'static str> {
-    Html(r#"<!doctype html>
+    Html(
+        r#"<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin</title>
+    <script src="/api/bootstrap.js"></script>
     <script type="module" src="http://localhost:5174/admin/@vite/client"></script>
     <script type="module">
       import RefreshRuntime from "http://localhost:5174/admin/@react-refresh"
@@ -116,5 +126,48 @@ async fn admin_dev() -> Html<&'static str> {
     <div id="root"></div>
     <script type="module" src="http://localhost:5174/admin/src/admin/main.tsx"></script>
   </body>
-</html>"#)
+</html>"#,
+    )
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct FrontendBootstrapPayload {
+    i18n: FrontendI18nPayload,
+    countries: Vec<Country>,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct FrontendI18nPayload {
+    default_locale: String,
+    supported_locales: Vec<String>,
+    default_timezone: String,
+}
+
+async fn bootstrap_script(
+    State(state): State<AppApiState>,
+) -> Result<([(header::HeaderName, &'static str); 2], String), AppError> {
+    let countries = crate::internal::workflows::country::list_enabled_for_bootstrap(&state).await?;
+
+    let payload = FrontendBootstrapPayload {
+        i18n: FrontendI18nPayload {
+            default_locale: state.i18n_default_locale.clone(),
+            supported_locales: state.i18n_supported_locales.clone(),
+            default_timezone: state.app_timezone.clone(),
+        },
+        countries,
+    };
+
+    let mut json = serde_json::to_string(&payload).map_err(AppError::from)?;
+    json = json.replace("</", "<\\/");
+
+    Ok((
+        [
+            (
+                header::CONTENT_TYPE,
+                "application/javascript; charset=utf-8",
+            ),
+            (header::CACHE_CONTROL, "no-store, max-age=0"),
+        ],
+        format!("window.__RUSTFORGE_BOOTSTRAP__ = Object.freeze({json});\n"),
+    ))
 }
