@@ -16,6 +16,8 @@ pub struct ContentPageDatatableRow {
     pub tag: String,
     pub title: Option<String>,
     pub is_system: generated::models::ContentPageSystemFlag,
+    #[serde(default)]
+    pub is_system_explained: Option<String>,
     pub updated_at: String,
 }
 

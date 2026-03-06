@@ -7,10 +7,9 @@
 //! Run: `cargo run -p app --bin export-types`
 //! Or:  `make gen-types`
 
-use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use ts_rs::TS;
 
 // ── Generated types (ts-rs) ──────────────────────────────────
@@ -23,6 +22,8 @@ struct TsFile {
     definitions: Vec<String>,
     /// Contract-facing enums referenced by the definitions.
     enums: BTreeSet<String>,
+    /// Shared framework TS types referenced by the definitions.
+    shared_types: BTreeSet<String>,
 }
 
 #[derive(Clone, Copy)]
@@ -32,10 +33,17 @@ struct AutoTsType {
     export: fn() -> String,
 }
 
+#[derive(Clone)]
+struct FrameworkTsFile {
+    rel_path: String,
+    rust_path: String,
+    definition: String,
+}
+
 include!(concat!(env!("OUT_DIR"), "/export_types_registry.rs"));
 
 fn main() {
-    let base = Path::new("frontend/src");
+    let base = frontend_src_dir();
 
     // ── 1. Contract types via ts-rs ─────────────────────────
     let mut files = load_discovered_ts_files();
@@ -46,12 +54,14 @@ fn main() {
     // Determine which contract-facing enums are actually referenced by DTOs.
     let known_contract_types = collect_declared_contract_types(&files);
     for ts_file in &mut files {
-        ts_file.enums = detect_enum_references(
+        let (enums, shared_types) = detect_type_references(
             ts_file.rel_path.as_str(),
             &ts_file.definitions,
             &known_contract_types,
             &known_contract_enum_names,
         );
+        ts_file.enums = enums;
+        ts_file.shared_types = shared_types;
     }
 
     // Write ts-rs generated files
@@ -60,7 +70,14 @@ fn main() {
         write_file(&path, &assemble(ts_file));
     }
 
-    // ── 2. Enum types (serde-derived) ────────────────────────
+    // ── 2. Framework-owned shared TS files ──────────────────
+    let framework_files = framework_ts_files();
+    for (rel_path, definitions) in group_framework_ts_files(&framework_files) {
+        let path = base.join(rel_path);
+        write_file(&path, &assemble_framework_file(&definitions));
+    }
+
+    // ── 3. Enum types (serde-derived) ────────────────────────
     let required_enums_by_portal = collect_required_enums_by_portal(&files);
     let required_enums_shared = collect_required_enums(&required_enums_by_portal);
     let shared_enums_ts = assemble_enums_file(&required_enums_shared, &contract_enum_renderers);
@@ -76,24 +93,14 @@ fn main() {
         write_file(&base.join(format!("{portal}/types/enums.ts")), &enums_ts);
     }
 
-    // ── 3. Static framework types (not derived from Rust structs) ──
-    //
-    // These mirror core-web types that don't live in the app crate.
-    // The scaffold also writes identical initial copies; this binary
-    // overwrites them to keep everything in sync after contract changes.
-    write_file(
-        &base.join("shared/types/platform.ts"),
-        &render_shared_platform_ts(),
-    );
-
+    // ── 4. Portal/shared barrels ─────────────────────────────
     for (portal, content) in assemble_portal_indexes(&all_portals, &files) {
         write_file(&base.join(format!("{portal}/types/index.ts")), &content);
     }
-    write_file(&base.join("shared/types/api.ts"), SHARED_API_TS);
-    write_file(&base.join("shared/types/datatable.ts"), SHARED_DATATABLE_TS);
-    write_file(&base.join("shared/types/index.ts"), SHARED_INDEX_TS);
+    let shared_index = assemble_shared_index(&files, &framework_files);
+    write_file(&base.join("shared/types/index.ts"), &shared_index);
 
-    println!("\nTypeScript types regenerated in frontend/src/");
+    println!("\nTypeScript types regenerated in {}", base.display());
 }
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -116,10 +123,128 @@ fn load_discovered_ts_files() -> Vec<TsFile> {
             rel_path,
             definitions,
             enums: BTreeSet::new(),
+            shared_types: BTreeSet::new(),
         });
     }
     files.sort_by(|a, b| a.rel_path.cmp(&b.rel_path));
     files
+}
+
+fn frontend_src_dir() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("../frontend/src")
+}
+
+fn framework_ts_files() -> Vec<FrameworkTsFile> {
+    let mut files = Vec::new();
+
+    for file in generated::ts_exports::ts_export_files() {
+        files.push(FrameworkTsFile {
+            rel_path: file.rel_path.to_string(),
+            rust_path: file.rust_path.to_string(),
+            definition: file.definition,
+        });
+    }
+
+    files.sort_by(|a, b| {
+        a.rel_path
+            .cmp(&b.rel_path)
+            .then(a.rust_path.cmp(&b.rust_path))
+    });
+
+    let mut seen = BTreeSet::new();
+    for file in &files {
+        let key = format!("{}::{}", file.rel_path, file.rust_path);
+        if !seen.insert(key.clone()) {
+            panic!("duplicate framework TS exporter entry: `{key}`");
+        }
+    }
+
+    files
+}
+
+fn group_framework_ts_files(framework_files: &[FrameworkTsFile]) -> BTreeMap<String, Vec<String>> {
+    let mut grouped: BTreeMap<String, Vec<(String, String)>> = BTreeMap::new();
+    for file in framework_files {
+        grouped
+            .entry(file.rel_path.clone())
+            .or_default()
+            .push((file.rust_path.clone(), file.definition.clone()));
+    }
+
+    let mut out = BTreeMap::new();
+    for (rel_path, mut defs) in grouped {
+        defs.sort_by(|a, b| a.0.cmp(&b.0));
+        assert_no_framework_symbol_collisions(&rel_path, &defs);
+        out.insert(
+            rel_path,
+            defs.into_iter().map(|(_, definition)| definition).collect(),
+        );
+    }
+    out
+}
+
+fn assert_no_framework_symbol_collisions(rel_path: &str, defs: &[(String, String)]) {
+    let mut seen_by_name: BTreeMap<String, String> = BTreeMap::new();
+    for (rust_path, definition) in defs {
+        let mut declared = BTreeSet::new();
+        collect_declared_types(definition, &mut declared);
+        for name in declared {
+            if let Some(previous) = seen_by_name.insert(name.clone(), rust_path.clone()) {
+                panic!(
+                    "duplicate framework TS declaration `{name}` in `{rel_path}` from `{previous}` and `{rust_path}`"
+                );
+            }
+        }
+    }
+}
+
+fn assemble_framework_file(definitions: &[String]) -> String {
+    let header = "// Auto-generated by `cargo run -p app --bin export-types`.\n\
+                  // Do not edit manually — run `make gen-types` to regenerate.\n";
+    let mut out = String::from(header);
+    out.push('\n');
+    for (index, definition) in definitions.iter().enumerate() {
+        if index > 0 {
+            out.push('\n');
+            out.push('\n');
+        }
+        out.push_str(definition.trim());
+    }
+    out.push('\n');
+    out
+}
+
+fn assemble_shared_index(files: &[TsFile], framework_files: &[FrameworkTsFile]) -> String {
+    let mut modules = BTreeSet::new();
+
+    for file in files {
+        if let Some(module) = shared_module_from_rel_path(&file.rel_path) {
+            modules.insert(module.to_string());
+        }
+    }
+    for file in framework_files {
+        if let Some(module) = shared_module_from_rel_path(&file.rel_path) {
+            modules.insert(module.to_string());
+        }
+    }
+
+    modules.insert("enums".to_string());
+
+    let mut out = String::new();
+    for module in modules {
+        out.push_str(&format!("export * from \"@shared/types/{module}\";\n"));
+    }
+    out
+}
+
+fn shared_module_from_rel_path(rel_path: &str) -> Option<&str> {
+    let rel = rel_path.strip_prefix("shared/types/")?;
+    let module = rel.strip_suffix(".ts")?;
+    if module.is_empty() || module == "index" {
+        None
+    } else {
+        Some(module)
+    }
 }
 
 fn collect_all_portals(
@@ -187,62 +312,21 @@ fn assemble_portal_indexes(
     indexes
 }
 
-fn enum_to_ts_type<T: Serialize>(name: &str, variants: &[T]) -> String {
-    let parts: Vec<String> = variants
-        .iter()
-        .map(|v| serde_json::to_string(v).unwrap())
-        .collect();
-    format!("export type {} = {};", name, parts.join(" | "))
-}
-
-fn ts_const_key(raw: &str) -> String {
-    let mut out = String::new();
-    let mut last_was_underscore = false;
-
-    for ch in raw.chars() {
-        let normalized = if ch.is_ascii_alphanumeric() {
-            ch.to_ascii_uppercase()
-        } else {
-            '_'
-        };
-
-        if normalized == '_' {
-            if out.is_empty() || last_was_underscore {
-                continue;
-            }
-            out.push('_');
-            last_was_underscore = true;
-            continue;
-        }
-
-        out.push(normalized);
-        last_was_underscore = false;
-    }
-
-    while out.ends_with('_') {
-        out.pop();
-    }
-
-    if out.is_empty() {
-        return "_".to_string();
-    }
-
-    if out.chars().next().is_some_and(|ch| ch.is_ascii_digit()) {
-        format!("_{out}")
-    } else {
-        out
-    }
-}
-
 fn assemble(f: &TsFile) -> String {
     let header = "// Auto-generated by `cargo run -p app --bin export-types`.\n\
                   // Do not edit manually — run `make gen-types` to regenerate.\n";
     let mut out = String::from(header);
     let portal = portal_from_rel_path(&f.rel_path)
         .unwrap_or_else(|| panic!("invalid TS export path (missing portal): {}", f.rel_path));
+    for import in shared_import_lines(&f.shared_types) {
+        out.push_str(&import);
+        out.push('\n');
+    }
     if let Some(import) = enum_import_line(portal, &f.enums) {
         out.push_str(&import);
         out.push('\n');
+        out.push('\n');
+    } else if !f.shared_types.is_empty() {
         out.push('\n');
     } else {
         out.push('\n');
@@ -323,12 +407,12 @@ fn collect_declared_contract_types(files: &[TsFile]) -> BTreeSet<String> {
     declared
 }
 
-fn detect_enum_references(
+fn detect_type_references(
     rel_path: &str,
     definitions: &[String],
     known_contract_types: &BTreeSet<String>,
     known_contract_enums: &BTreeSet<String>,
-) -> BTreeSet<String> {
+) -> (BTreeSet<String>, BTreeSet<String>) {
     let mut used_identifiers = BTreeSet::new();
     for def in definitions {
         collect_used_type_identifiers(def, &mut used_identifiers);
@@ -340,8 +424,11 @@ fn detect_enum_references(
     for builtin in ts_builtins() {
         used_identifiers.remove(*builtin);
     }
+    let mut shared_types = BTreeSet::new();
     for shared in ts_shared_types() {
-        used_identifiers.remove(*shared);
+        if used_identifiers.remove(*shared) {
+            shared_types.insert((*shared).to_string());
+        }
     }
 
     let mut enums = BTreeSet::new();
@@ -362,119 +449,7 @@ fn detect_enum_references(
         );
     }
 
-    enums
-}
-
-fn render_shared_platform_ts() -> String {
-    use generated::{DEFAULT_LOCALE, SUPPORTED_LOCALES};
-
-    if !SUPPORTED_LOCALES.contains(&DEFAULT_LOCALE) {
-        panic!(
-            "DEFAULT_LOCALE `{}` is not included in SUPPORTED_LOCALES",
-            DEFAULT_LOCALE
-        );
-    }
-
-    let locale_union = SUPPORTED_LOCALES
-        .iter()
-        .map(|locale| format!("\"{locale}\""))
-        .collect::<Vec<_>>()
-        .join(" | ");
-
-    format!(
-        "\
-export type LocaleCode = {locale_union};
-export const DEFAULT_LOCALE: LocaleCode = \"{default_locale}\";
-
-// Localized text payload generated from app language settings.
-export type LocalizedText<TLocale extends string = LocaleCode> = Record<TLocale, string>;
-
-// field -> owner_id -> locale -> value
-export type LocalizedMap<TLocale extends string = LocaleCode> = Record<
-  string,
-  Record<number, Record<TLocale, string>>
->;
-
-export type JsonPrimitive = string | number | boolean | null;
-export type JsonValue = JsonPrimitive | JsonObject | JsonValue[];
-export interface JsonObject {{
-  [key: string]: JsonValue;
-}}
-
-// Generic typed meta shape (compile-time typed keys/values).
-export type MetaRecord<
-  TShape extends Record<string, unknown> = Record<string, JsonValue>
-> = Partial<TShape>;
-
-// field -> owner_id -> value
-export type MetaMap = Record<string, Record<number, JsonValue>>;
-
-export interface AttachmentUploadDto {{
-  id?: string | null;
-  name?: string | null;
-  path: string;
-  content_type: string;
-  size: number;
-  width?: number | null;
-  height?: number | null;
-}}
-
-// Backward-compatible alias used by generated model APIs.
-export type AttachmentInput = AttachmentUploadDto;
-
-export interface Attachment {{
-  id: string;
-  path: string;
-  url: string;
-  content_type: string;
-  size: number;
-  width: number | null;
-  height: number | null;
-  created_at: string;
-}}
-
-// field -> owner_id -> attachments
-export type AttachmentMap = Record<string, Record<number, Attachment[]>>;
-
-export type CountryStatus = \"enabled\" | \"disabled\";
-
-export interface CountryCurrency {{
-  code: string;
-  name?: string | null;
-  symbol?: string | null;
-  minor_units?: number | null;
-}}
-
-export interface CountryRuntime {{
-  iso2: string;
-  iso3: string;
-  iso_numeric?: string | null;
-  name: string;
-  official_name?: string | null;
-  capital?: string | null;
-  capitals: string[];
-  region?: string | null;
-  subregion?: string | null;
-  currencies: CountryCurrency[];
-  primary_currency_code?: string | null;
-  calling_code?: string | null;
-  calling_root?: string | null;
-  calling_suffixes: string[];
-  tlds: string[];
-  timezones: string[];
-  latitude?: number | null;
-  longitude?: number | null;
-  independent?: boolean | null;
-  status: CountryStatus;
-  assignment_status?: string | null;
-  un_member?: boolean | null;
-  flag_emoji?: string | null;
-  created_at: string;
-  updated_at: string;
-}}
-",
-        default_locale = DEFAULT_LOCALE
-    )
+    (enums, shared_types)
 }
 
 fn collect_used_type_identifiers(definition: &str, out: &mut BTreeSet<String>) {
@@ -588,6 +563,7 @@ fn ts_builtins() -> &'static [&'static str] {
 fn ts_shared_types() -> &'static [&'static str] {
     &[
         "ApiResponse",
+        "ApiErrorResponse",
         "Attachment",
         "AttachmentInput",
         "AttachmentMap",
@@ -607,228 +583,16 @@ fn ts_shared_types() -> &'static [&'static str] {
 }
 
 fn collect_contract_enum_renderers() -> BTreeMap<String, String> {
-    let mut out = collect_schema_enum_renderers();
-    out.insert("Permission".to_string(), render_permission_enum());
-    out.insert("AuthClientType".to_string(), render_auth_client_type_enum());
-    out
-}
-
-fn collect_schema_enum_renderers() -> BTreeMap<String, String> {
     let mut out = BTreeMap::new();
-    for (name, variants) in parse_schema_enum_variants() {
-        out.insert(name.clone(), render_schema_enum(&name, &variants));
-    }
-    out
-}
 
-fn render_schema_enum(name: &str, variants: &[String]) -> String {
-    let mut out = enum_to_ts_type(name, variants);
-    let const_base = ts_type_const_key(name);
-    let list_const = ts_plural_const_key(&const_base);
-
-    out.push_str(&format!(
-        "\n\nexport const {const_base}: Readonly<Record<string, {name}>> = {{"
-    ));
-    for variant in variants {
-        out.push_str(&format!(
-            "\n  {}: {},",
-            ts_const_key(variant),
-            serde_json::to_string(variant).expect("schema enum value"),
-        ));
-    }
-    out.push_str("\n};");
-
-    out.push_str(&format!(
-        "\n\nexport const {list_const}: ReadonlyArray<{name}> = ["
-    ));
-    for variant in variants {
-        out.push_str(&format!(
-            "\n  {},",
-            serde_json::to_string(variant).expect("schema enum list value"),
-        ));
-    }
-    out.push_str("\n];");
-    out
-}
-
-fn parse_schema_enum_variants() -> BTreeMap<String, Vec<String>> {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../generated/src/models/enums.rs");
-    let source = fs::read_to_string(&path).unwrap_or_else(|e| {
-        panic!(
-            "failed to read generated schema enums at {}: {e}",
-            path.display()
-        )
-    });
-
-    let mut out = BTreeMap::new();
-    let mut cursor = 0usize;
-    while let Some(offset) = source[cursor..].find("pub enum ") {
-        let start = cursor + offset + "pub enum ".len();
-        let Some(name) = read_identifier(&source[start..]) else {
-            break;
-        };
-        let enum_name = name.to_string();
-
-        let impl_marker = format!("impl {enum_name} {{");
-        let impl_start = source[start..].find(&impl_marker).unwrap_or_else(|| {
-            panic!(
-                "missing impl block for schema enum `{enum_name}` in {}",
-                path.display()
-            )
-        });
-        let impl_start = start + impl_start;
-
-        let as_str_start = source[impl_start..]
-            .find("pub const fn as_str")
-            .unwrap_or_else(|| {
-                panic!(
-                    "missing as_str() function for schema enum `{enum_name}` in {}",
-                    path.display()
-                )
-            });
-        let as_str_start = impl_start + as_str_start;
-        let variants_start = source[as_str_start..]
-            .find("pub const fn variants")
-            .unwrap_or_else(|| {
-                panic!(
-                    "missing variants() function for schema enum `{enum_name}` in {}",
-                    path.display()
-                )
-            });
-        let variants_start = as_str_start + variants_start;
-
-        let as_str_block = &source[as_str_start..variants_start];
-        let mut values = Vec::new();
-        for line in as_str_block.lines() {
-            let trimmed = line.trim();
-            if !trimmed.contains("=>") {
-                continue;
-            }
-            if let Some(value) = read_quoted_literal(trimmed) {
-                values.push(value.to_string());
-            }
+    for (name, definition) in generated::ts_exports::contract_enum_renderers() {
+        let previous = out.insert(name.clone(), definition);
+        if previous.is_some() {
+            panic!("duplicate contract enum renderer registered for `{name}`");
         }
-
-        if values.is_empty() {
-            panic!(
-                "failed to parse schema enum values for `{enum_name}` from {}",
-                path.display()
-            );
-        }
-
-        out.insert(enum_name, values);
-        cursor = variants_start;
     }
 
     out
-}
-
-fn read_quoted_literal(input: &str) -> Option<&str> {
-    let start = input.find('"')?;
-    let tail = &input[start + 1..];
-    let end = tail.find('"')?;
-    Some(&tail[..end])
-}
-
-fn ts_type_const_key(name: &str) -> String {
-    let mut out = String::new();
-    let mut previous_was_lower_or_digit = false;
-
-    for ch in name.chars() {
-        if ch == '_' {
-            if !out.ends_with('_') && !out.is_empty() {
-                out.push('_');
-            }
-            previous_was_lower_or_digit = false;
-            continue;
-        }
-
-        if ch.is_ascii_uppercase() && previous_was_lower_or_digit && !out.ends_with('_') {
-            out.push('_');
-        }
-        out.push(ch.to_ascii_uppercase());
-        previous_was_lower_or_digit = ch.is_ascii_lowercase() || ch.is_ascii_digit();
-    }
-
-    out
-}
-
-fn ts_plural_const_key(base: &str) -> String {
-    if let Some(stem) = base.strip_suffix('Y') {
-        format!("{stem}IES")
-    } else if base.ends_with('S') {
-        format!("{base}ES")
-    } else {
-        format!("{base}S")
-    }
-}
-
-fn render_permission_enum() -> String {
-    use generated::permissions::{Permission, PERMISSION_META};
-
-    let mut out = enum_to_ts_type("Permission", Permission::all());
-    out.push_str(
-        "\n\nexport interface PermissionMeta {\n  key: Permission;\n  guard: string;\n  label: string;\n  group: string;\n  description: string;\n}",
-    );
-
-    out.push_str("\n\nexport const PERMISSION_META: ReadonlyArray<PermissionMeta> = [");
-    for meta in PERMISSION_META {
-        out.push_str(&format!(
-            "\n  {{ key: {}, guard: {}, label: {}, group: {}, description: {} }},",
-            serde_json::to_string(&meta.key).expect("permission key"),
-            serde_json::to_string(&meta.guard).expect("permission guard"),
-            serde_json::to_string(&meta.label).expect("permission label"),
-            serde_json::to_string(&meta.group).expect("permission group"),
-            serde_json::to_string(&meta.description).expect("permission description"),
-        ));
-    }
-    out.push_str("\n];");
-
-    out.push_str("\n\nexport const PERMISSIONS: ReadonlyArray<Permission> = [");
-    for permission in Permission::all() {
-        out.push_str(&format!(
-            "\n  {},",
-            serde_json::to_string(&permission.as_str()).expect("permission value"),
-        ));
-    }
-    out.push_str("\n];");
-
-    out.push_str("\n\nexport const PERMISSION: Readonly<Record<string, Permission>> = {");
-    for permission in Permission::all() {
-        let value = permission.as_str();
-        out.push_str(&format!(
-            "\n  {}: {},",
-            ts_const_key(value),
-            serde_json::to_string(&value).expect("permission const value"),
-        ));
-    }
-    out.push_str("\n};");
-
-    out.push_str(
-        "\n\nexport const PERMISSION_META_BY_KEY: Readonly<Record<Permission, PermissionMeta>> = {",
-    );
-    for meta in PERMISSION_META {
-        out.push_str(&format!(
-            "\n  {}: {{ key: {}, guard: {}, label: {}, group: {}, description: {} }},",
-            serde_json::to_string(&meta.key).expect("permission key in by_key"),
-            serde_json::to_string(&meta.key).expect("permission meta key field"),
-            serde_json::to_string(&meta.guard).expect("permission meta guard field"),
-            serde_json::to_string(&meta.label).expect("permission meta label field"),
-            serde_json::to_string(&meta.group).expect("permission meta group field"),
-            serde_json::to_string(&meta.description).expect("permission meta description field"),
-        ));
-    }
-    out.push_str("\n};");
-
-    out
-}
-
-fn render_auth_client_type_enum() -> String {
-    use core_web::auth::AuthClientType;
-    enum_to_ts_type(
-        "AuthClientType",
-        &[AuthClientType::Web, AuthClientType::Mobile],
-    )
 }
 
 fn portal_from_rel_path(rel_path: &str) -> Option<&str> {
@@ -850,6 +614,72 @@ fn enum_import_line(portal: &str, enums: &BTreeSet<String>) -> Option<String> {
     ))
 }
 
+fn shared_import_lines(shared_types: &BTreeSet<String>) -> Vec<String> {
+    if shared_types.is_empty() {
+        return Vec::new();
+    }
+
+    let mut by_module: BTreeMap<&'static str, BTreeSet<String>> = BTreeMap::new();
+    for shared_type in shared_types {
+        let module = shared_type_module(shared_type).unwrap_or_else(|| {
+            panic!("missing shared type module mapping for `{shared_type}`");
+        });
+        by_module
+            .entry(module)
+            .or_default()
+            .insert(shared_type.clone());
+    }
+
+    let mut lines = Vec::new();
+    for (module, types) in by_module {
+        let joined = types.into_iter().collect::<Vec<_>>().join(", ");
+        lines.push(format!(
+            r#"import type {{ {} }} from "@shared/types/{}";"#,
+            joined, module
+        ));
+    }
+    lines
+}
+
+fn shared_type_module(shared_type: &str) -> Option<&'static str> {
+    match shared_type {
+        "ApiResponse" | "ApiErrorResponse" => Some("api"),
+        "DataTablePaginationMode"
+        | "DataTableSortDirection"
+        | "DataTableQueryRequestBase"
+        | "DataTableEmailExportRequestBase"
+        | "DataTableFilterFieldType"
+        | "DataTableFilterOptionDto"
+        | "DataTableFilterFieldDto"
+        | "DataTableColumnMetaDto"
+        | "DataTableRelationColumnMetaDto"
+        | "DataTableDefaultsDto"
+        | "DataTableDiagnosticsDto"
+        | "DataTableMetaDto"
+        | "DataTableQueryResponse"
+        | "DataTableEmailExportState"
+        | "DataTableEmailExportStatusDto"
+        | "DataTableEmailExportQueuedDto"
+        | "DataTableExportStatusResponseDto" => Some("datatable"),
+        "Attachment"
+        | "AttachmentInput"
+        | "AttachmentMap"
+        | "AttachmentUploadDto"
+        | "CountryCurrency"
+        | "CountryRuntime"
+        | "CountryStatus"
+        | "JsonObject"
+        | "JsonPrimitive"
+        | "JsonValue"
+        | "LocaleCode"
+        | "LocalizedMap"
+        | "LocalizedText"
+        | "MetaMap"
+        | "MetaRecord" => Some("platform"),
+        _ => None,
+    }
+}
+
 fn write_file(path: &Path, content: &str) {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).expect("failed to create directory");
@@ -859,163 +689,3 @@ fn write_file(path: &Path, content: &str) {
     });
     println!("  wrote {}", path.display());
 }
-
-// ── Static TypeScript content ────────────────────────────────
-// Framework types from core-web that can't derive TS directly.
-
-const SHARED_API_TS: &str = "\
-export interface ApiResponse<T> {
-  data: T;
-  message?: string;
-}
-
-export interface ApiErrorResponse {
-  message: string;
-  errors?: Record<string, string[]>;
-}
-";
-
-const SHARED_DATATABLE_TS: &str = "\
-export type DataTablePaginationMode = \"offset\" | \"cursor\";
-
-export type DataTableSortDirection = \"asc\" | \"desc\";
-
-export interface DataTableQueryRequestBase {
-  include_meta?: boolean;
-  page?: number | null;
-  per_page?: number | null;
-  cursor?: string | null;
-  pagination_mode?: DataTablePaginationMode | null;
-  sorting_column?: string | null;
-  sorting?: DataTableSortDirection | null;
-  timezone?: string | null;
-  created_at_from?: string | null;
-  created_at_to?: string | null;
-}
-
-export interface DataTableEmailExportRequestBase {
-  query: DataTableQueryRequestBase;
-  recipients: string[];
-  subject?: string | null;
-  export_file_name?: string | null;
-}
-
-export type DataTableFilterFieldType =
-  | \"text\"
-  | \"select\"
-  | \"number\"
-  | \"date\"
-  | \"datetime\"
-  | \"time\"
-  | \"boolean\";
-
-export interface DataTableFilterOptionDto {
-  label: string;
-  value: string;
-}
-
-export interface DataTableFilterFieldDto {
-  field: string;
-  filter_key: string;
-  type: DataTableFilterFieldType;
-  label: string;
-  placeholder?: string;
-  description?: string;
-  options?: DataTableFilterOptionDto[];
-}
-
-export interface DataTableColumnMetaDto {
-  name: string;
-  label: string;
-  data_type: string;
-  sortable: boolean;
-  localized: boolean;
-  filter_ops: string[];
-}
-
-export interface DataTableRelationColumnMetaDto {
-  relation: string;
-  column: string;
-  data_type: string;
-  filter_ops: string[];
-}
-
-export interface DataTableDefaultsDto {
-  sorting_column: string;
-  sorted: string;
-  per_page: number;
-  export_ignore_columns: string[];
-  timestamp_columns: string[];
-  unsortable: string[];
-}
-
-export interface DataTableDiagnosticsDto {
-  duration_ms: number;
-  auto_filters_applied: number;
-  unknown_filters: string[];
-  unknown_filter_mode: string;
-}
-
-export interface DataTableMetaDto {
-  model_key: string;
-  defaults: DataTableDefaultsDto;
-  columns: DataTableColumnMetaDto[];
-  relation_columns: DataTableRelationColumnMetaDto[];
-  filter_rows: (DataTableFilterFieldDto | DataTableFilterFieldDto[])[];
-}
-
-export interface DataTableQueryResponse<T> {
-  records: T[];
-  per_page: number;
-  total_records: number;
-  total_pages: number;
-  page: number;
-  pagination_mode: string;
-  has_more?: boolean;
-  next_cursor?: string;
-  summary?: unknown;
-  diagnostics: DataTableDiagnosticsDto;
-  meta?: DataTableMetaDto;
-}
-
-export type DataTableEmailExportState =
-  | \"waiting_csv\"
-  | \"uploading\"
-  | \"sending\"
-  | \"completed\"
-  | \"failed\";
-
-export interface DataTableEmailExportStatusDto {
-  state: DataTableEmailExportState;
-  recipients: string[];
-  subject?: string;
-  link_url?: string;
-  error?: string;
-  updated_at_unix: number;
-  sent_at_unix?: number;
-}
-
-export interface DataTableEmailExportQueuedDto {
-  job_id: string;
-  csv_state: string;
-  email_state: DataTableEmailExportState;
-}
-
-export interface DataTableExportStatusResponseDto {
-  job_id: string;
-  model_key: string;
-  csv_state: string;
-  csv_error?: string;
-  csv_file_name?: string;
-  csv_content_type?: string;
-  csv_total_records?: number;
-  email?: DataTableEmailExportStatusDto;
-}
-";
-
-const SHARED_INDEX_TS: &str = "\
-export * from \"@shared/types/api\";
-export * from \"@shared/types/datatable\";
-export * from \"@shared/types/enums\";
-export * from \"@shared/types/platform\";
-";

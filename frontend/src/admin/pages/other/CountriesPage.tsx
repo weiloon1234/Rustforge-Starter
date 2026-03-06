@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Pencil } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { CountryDatatableRow } from "@admin/types";
@@ -18,6 +19,7 @@ import {
 
 const COUNTRY_STATUS_ENABLED = "enabled";
 const COUNTRY_STATUS_DISABLED = "disabled";
+const EMPTY_SCOPES: string[] = [];
 
 function statusBadgeClass(status: string): string {
   if (status === COUNTRY_STATUS_ENABLED) {
@@ -35,10 +37,12 @@ function EditCountryStatusForm({
   row,
   onUpdated,
   formId,
+  onBusyChange,
 }: {
   row: CountryDatatableRow;
   onUpdated: () => void;
   formId: string;
+  onBusyChange: (busy: boolean) => void;
 }) {
   const { t } = useTranslation();
   const close = useModalStore((s) => s.close);
@@ -74,6 +78,10 @@ function EditCountryStatusForm({
     },
   });
 
+  useEffect(() => {
+    onBusyChange(busy);
+  }, [busy, onBusyChange]);
+
   return (
     <form id={formId} onSubmit={submit} className="space-y-4">
       {errors.general && (
@@ -102,31 +110,42 @@ function EditCountryStatusForm({
 
 export default function CountriesPage() {
   const { t } = useTranslation();
-  const scopes = useAuthStore((state) => state.account?.scopes ?? []);
+  const scopes = useAuthStore((state) => state.account?.scopes ?? EMPTY_SCOPES);
   const canManage = hasPermission(scopes, PERMISSION.COUNTRY_MANAGE);
 
   const openEditModal = (row: CountryDatatableRow, refresh: () => void) => {
     const formId = `country-status-form-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    useModalStore.getState().open({
+    let modalId = "";
+    const renderFooter = (busy: boolean) => (
+      <>
+        <Button
+          type="button"
+          onClick={() => useModalStore.getState().close()}
+          variant="secondary"
+          disabled={busy}
+        >
+          {t("Cancel")}
+        </Button>
+        <Button type="submit" form={formId} variant="primary" busy={busy}>
+          {busy ? t("Saving…") : t("Save")}
+        </Button>
+      </>
+    );
+    modalId = useModalStore.getState().open({
       title: t("Edit Country Status"),
       size: "md",
       content: (
-        <EditCountryStatusForm row={row} onUpdated={refresh} formId={formId} />
+        <EditCountryStatusForm
+          row={row}
+          onUpdated={refresh}
+          formId={formId}
+          onBusyChange={(busy) => {
+            if (!modalId) return;
+            useModalStore.getState().update(modalId, { footer: renderFooter(busy) });
+          }}
+        />
       ),
-      footer: (
-        <>
-          <Button
-            type="button"
-            onClick={() => useModalStore.getState().close()}
-            variant="secondary"
-          >
-            {t("Cancel")}
-          </Button>
-          <Button type="submit" form={formId} variant="primary">
-            {t("Save")}
-          </Button>
-        </>
-      ),
+      footer: renderFooter(false),
     });
   };
 

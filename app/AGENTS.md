@@ -6,6 +6,7 @@ Design rules:
 1. Keep it simple.
 2. Keep a single source of truth.
 3. Do not edit generated outputs directly.
+4. Do not suppress non-unused warnings; fix root causes instead.
 
 ## SSOT Files
 
@@ -15,6 +16,16 @@ Design rules:
 - `../i18n/*.json` — translation keys and values.
 
 Generated outputs are produced from these inputs (plus build-time codegen) and can be overwritten.
+
+## Warning Policy
+
+- Allowed suppression scope is only unused-family lints:
+  - `dead_code`
+  - `unused_imports`
+  - `unused_variables`
+  - `unused_mut`
+- Any other lint suppression (for example `non_camel_case_types`) is not allowed; fix the implementation instead.
+- Do not use crate/dependency features that hide warnings (for example `ts-rs` `no-serde-warnings`).
 
 ## Runtime Layers
 
@@ -86,6 +97,11 @@ Do not mount per-model datatable routes manually outside the admin catalog wirin
 Validation input wrappers:
 - Use `ContractJson<T>` for sync validations.
 - Use `AsyncContractJson<T>` when async DB rules are involved.
+- Use `Option<T>` for nullable create/full-input fields.
+- Use `core_web::Patch<T>` for update fields when omitted vs `null` vs value must be different:
+  - `Missing` = no change
+  - `Null` = clear value
+  - `Value(T)` = set/update value
 
 ## Recipe: Create Validation Rules
 
@@ -94,6 +110,7 @@ Validation input wrappers:
 - Put helper in `src/validation/{domain}.rs`.
 - Return `Result<(), validator::ValidationError>`.
 - Attach in contract via validation attributes.
+- For PATCH inputs, prefer normalizing `Patch<String>` in the contract before validation instead of treating empty string as a nullable sentinel.
 
 ### Async/DB rule
 
@@ -199,7 +216,10 @@ For contract types used by frontend:
 
 1. Add `#[derive(TS)]`.
 2. Add `#[ts(export, export_to = "{portal}/types/")]`.
-3. Run:
+3. Shared TS types are framework-owned SSOT through `generated::ts_exports::ts_export_files()`.
+   - This registry is the compatibility bridge for scaffold template consumers and includes framework shapes (API/datatable/platform) plus generated enums/locales.
+4. `app/src/bin/export-types.rs` orchestrates only (merge app contracts + generated shared registry, then emit files).
+5. Run:
 
 ```bash
 cargo run -p app --bin export-types
@@ -211,6 +231,9 @@ All user-facing strings must go through translation keys.
 
 - Rust side: use `core_i18n::t()` / `t_args()`.
 - Add keys in `../i18n/*.json`.
+- Permission translations must use permission keys from `permissions.toml` as i18n keys (for example `admin.read`, `country.manage`).
+- When adding/updating permissions, add/update those permission-key translations in both `../i18n/en.json` and `../i18n/zh.json` in the same change.
+- Keep permission-key entries grouped together in a dedicated nearby block in each locale file (do not scatter or append randomly).
 
 ## Seeder Recipe
 
@@ -220,6 +243,8 @@ All user-facing strings must go through translation keys.
 
 ```bash
 ./console db seed
+./console db seed --name Countries          # specific seeder
+./console db seed --name CountriesSeeder    # same target; `Seeder` suffix is optional
 ```
 
 ## Minimal Delivery Checklist

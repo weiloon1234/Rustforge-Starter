@@ -6,4 +6,5 @@ pub mod permissions;
 pub mod localized;
 pub use localized::*;
 pub mod extensions;
+pub mod ts_exports;
 pub mod generated { pub use crate::*; }

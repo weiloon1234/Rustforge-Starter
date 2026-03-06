@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use serde::{Deserialize, Serialize};
 
 pub fn renumber_placeholders(sql: &str, start: usize) -> String {
@@ -21,6 +20,7 @@ pub fn renumber_placeholders(sql: &str, start: usize) -> String {
     }
     out
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Page<T> {
     pub data: Vec<T>,

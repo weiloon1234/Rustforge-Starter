@@ -1,19 +1,22 @@
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import type {
+  AdminMeOutput,
   AdminDatatableSummaryOutput,
   AdminDeleteOutput,
   AdminDatatableRow,
   AdminType,
   Permission,
+  PermissionMeta,
 } from "@admin/types";
-import { ADMIN_TYPE, PERMISSIONS, PERMISSION_META } from "@admin/types";
+import { ADMIN_TYPE, PERMISSION, PERMISSIONS, PERMISSION_META } from "@admin/types";
 import type { ApiResponse } from "@shared/types";
 import {
   Button,
   Checkbox,
   DataTable,
+  type DataTableCellContext,
   useAutoForm,
   useModalStore,
   alertConfirm,
@@ -22,86 +25,154 @@ import {
   formatDateTime,
 } from "@shared/components";
 import type { DataTablePostCallEvent } from "@shared/components";
+import { useAuthStore } from "@admin/stores/auth";
 import { api } from "@admin/api";
+import { hasPermission } from "@shared/permissions";
 
 const TYPE_COLORS: Record<AdminType, string> = {
-  [ADMIN_TYPE.DEVELOPER]: "bg-purple-100 text-purple-700",
-  [ADMIN_TYPE.SUPERADMIN]: "bg-amber-100 text-amber-700",
-  [ADMIN_TYPE.ADMIN]: "bg-blue-100 text-blue-700",
+  developer: "bg-purple-100 text-purple-700",
+  superadmin: "bg-amber-100 text-amber-700",
+  admin: "bg-blue-100 text-blue-700",
 };
 
 const ADMIN_PERMISSION_META = PERMISSION_META.filter(
   (meta) => meta.guard.toLowerCase() === "admin",
 );
+const RESTRICTED_ADMIN_ASSIGNMENT_PERMISSIONS: readonly Permission[] = [
+  PERMISSION.ADMIN_READ,
+  PERMISSION.ADMIN_MANAGE,
+];
+const EMPTY_SCOPES: readonly string[] = [];
 
 const ENABLE_SUMMARY_CARDS = true;
+
+function resolvePermissionLabel(
+  t: (key: string, options?: Record<string, unknown>) => string,
+  permissionKey: string,
+  fallbackLabel?: string,
+): string {
+  const translatedByKey = t(permissionKey);
+  if (translatedByKey !== permissionKey) return translatedByKey;
+
+  if (!fallbackLabel) return permissionKey;
+
+  const translatedByLabel = t(fallbackLabel);
+  if (translatedByLabel !== fallbackLabel) return translatedByLabel;
+  return fallbackLabel;
+}
 
 function TypeBadge({ type }: { type: AdminType }) {
   return (
     <span
-      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_COLORS[type] ?? "bg-gray-100 text-gray-700"}`}
+      className={`inline-flex min-h-6 items-center rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_COLORS[type] ?? "bg-gray-100 text-gray-700"}`}
     >
       {type}
     </span>
   );
 }
 
-function PermissionBadges({ abilities }: { abilities: string[] }) {
+function PermissionSummary({ admin }: { admin: AdminDatatableRow }) {
   const { t } = useTranslation();
-  if (abilities.includes("*")) {
+  if (admin.admin_type !== ADMIN_TYPE.ADMIN || admin.abilities.includes("*")) {
     return (
-      <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+      <span className="inline-flex min-h-6 items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
         {t("All permissions")}
       </span>
     );
   }
 
+  const abilities = admin.abilities;
+  const openPermissionModal = () => {
+    useModalStore.getState().open({
+      title: t("Permissions"),
+      size: "md",
+      content: (
+        <div className="space-y-3">
+          <p className="text-sm text-muted">
+            {t("Permissions for :username", { username: admin.username })}
+          </p>
+          {abilities.length === 0 ? (
+            <p className="text-sm text-muted">{t("No permissions assigned")}</p>
+          ) : (
+            <div className="space-y-2">
+              {abilities.map((ability) => {
+                const meta = ADMIN_PERMISSION_META.find(
+                  (item) => item.key === ability,
+                );
+                const displayLabel = resolvePermissionLabel(
+                  t,
+                  ability,
+                  meta?.label,
+                );
+                return (
+                  <div
+                    key={ability}
+                    className="rounded-lg border border-border bg-surface px-3 py-2"
+                  >
+                    <p className="text-sm font-medium">{displayLabel}</p>
+                    <p className="text-xs text-muted">{ability}</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ),
+      footer: (
+        <Button
+          type="button"
+          onClick={() => useModalStore.getState().close()}
+          variant="secondary"
+        >
+          {t("Close")}
+        </Button>
+      ),
+    });
+  };
+
   return (
-    <div className="flex flex-wrap gap-1">
-      {abilities.map((ability) => {
-        const meta = ADMIN_PERMISSION_META.find((item) => item.key === ability);
-        return (
-          <span
-            key={ability}
-            className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600"
-          >
-            {t(meta?.label ?? ability)}
-          </span>
-        );
-      })}
-    </div>
+    <button
+      type="button"
+      className="inline-flex min-h-6 items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+      onClick={openPermissionModal}
+    >
+      {t(":count Permissions", { count: abilities.length })}
+    </button>
   );
 }
 
 function PermissionCheckboxes({
   abilities,
+  availablePermissions,
   onChange,
 }: {
   abilities: Permission[];
+  availablePermissions: readonly PermissionMeta[];
   onChange: (next: Permission[]) => void;
 }) {
   const { t } = useTranslation();
   return (
     <fieldset className="space-y-2">
-      <legend className="text-sm font-medium">
-        {t("Permissions")}
-      </legend>
+      <legend className="text-sm font-medium">{t("Permissions")}</legend>
       <div className="flex flex-wrap gap-x-6 gap-y-1">
-        {ADMIN_PERMISSION_META.map((meta) => (
-          <Checkbox
-            key={meta.key}
-            label={t(meta.label)}
-            checked={abilities.includes(meta.key as Permission)}
-            onChange={(e) => {
-              const permission = meta.key as Permission;
-              if (e.target.checked) {
-                onChange([...abilities, permission]);
-              } else {
-                onChange(abilities.filter((value) => value !== permission));
-              }
-            }}
-          />
-        ))}
+        {availablePermissions.map((meta) => {
+          const label = resolvePermissionLabel(t, meta.key, meta.label);
+          return (
+            <Checkbox
+              key={meta.key}
+              label={label}
+              checked={abilities.includes(meta.key as Permission)}
+              onChange={(e) => {
+                const permission = meta.key as Permission;
+                if (e.target.checked) {
+                  onChange([...abilities, permission]);
+                } else {
+                  onChange(abilities.filter((value) => value !== permission));
+                }
+              }}
+            />
+          );
+        })}
       </div>
     </fieldset>
   );
@@ -110,15 +181,19 @@ function PermissionCheckboxes({
 function CreateAdminForm({
   onCreated,
   formId,
+  availablePermissions,
+  onBusyChange,
 }: {
   onCreated: () => void;
   formId: string;
+  availablePermissions: readonly PermissionMeta[];
+  onBusyChange: (busy: boolean) => void;
 }) {
   const { t } = useTranslation();
   const close = useModalStore((s) => s.close);
   const [abilities, setAbilities] = useState<Permission[]>([]);
 
-  const { submit, form, errors } = useAutoForm(api, {
+  const { submit, busy, form, errors } = useAutoForm(api, {
     url: "admins",
     method: "post",
     extraPayload: { abilities },
@@ -159,6 +234,10 @@ function CreateAdminForm({
     },
   });
 
+  useEffect(() => {
+    onBusyChange(busy);
+  }, [busy, onBusyChange]);
+
   return (
     <form id={formId} onSubmit={submit} className="space-y-4">
       {errors.general && (
@@ -167,7 +246,13 @@ function CreateAdminForm({
         </p>
       )}
       {form}
-      <PermissionCheckboxes abilities={abilities} onChange={setAbilities} />
+      {availablePermissions.length > 0 && (
+        <PermissionCheckboxes
+          abilities={abilities}
+          availablePermissions={availablePermissions}
+          onChange={setAbilities}
+        />
+      )}
     </form>
   );
 }
@@ -176,25 +261,39 @@ function EditAdminForm({
   admin,
   onUpdated,
   formId,
+  availablePermissions,
+  onBusyChange,
 }: {
   admin: AdminDatatableRow;
   onUpdated: () => void;
   formId: string;
+  availablePermissions: readonly PermissionMeta[];
+  onBusyChange: (busy: boolean) => void;
 }) {
   const { t } = useTranslation();
   const close = useModalStore((s) => s.close);
   const isNormalAdmin = admin.admin_type === ADMIN_TYPE.ADMIN;
+  const currentPermissions = admin.abilities.filter(
+    (value): value is Permission => PERMISSIONS.includes(value as Permission),
+  );
+  const assignablePermissionKeys = new Set(
+    availablePermissions.map((meta) => meta.key),
+  );
+  const canEditAbilities =
+    isNormalAdmin &&
+    currentPermissions.every((permission) =>
+      assignablePermissionKeys.has(permission),
+    );
   const [abilities, setAbilities] = useState<Permission[]>(
-    admin.abilities.filter(
-      (value): value is Permission =>
-        PERMISSIONS.includes(value as Permission),
+    currentPermissions.filter((permission) =>
+      assignablePermissionKeys.has(permission),
     ),
   );
 
-  const { submit, form, errors } = useAutoForm(api, {
+  const { submit, busy, form, errors } = useAutoForm(api, {
     url: `admins/${admin.id}`,
     method: "patch",
-    extraPayload: isNormalAdmin ? { abilities } : {},
+    extraPayload: canEditAbilities ? { abilities } : {},
     fields: [
       {
         name: "username",
@@ -217,6 +316,14 @@ function EditAdminForm({
         placeholder: t("Enter email"),
         required: false,
       },
+      {
+        name: "password",
+        type: "password",
+        label: t("Password"),
+        placeholder: t("Enter password"),
+        required: false,
+        notes: t("Leave blank to keep current password"),
+      },
     ],
     defaults: {
       username: admin.username,
@@ -230,6 +337,10 @@ function EditAdminForm({
     },
   });
 
+  useEffect(() => {
+    onBusyChange(busy);
+  }, [busy, onBusyChange]);
+
   return (
     <form id={formId} onSubmit={submit} className="space-y-4">
       {errors.general && (
@@ -238,19 +349,61 @@ function EditAdminForm({
         </p>
       )}
       {form}
-      {isNormalAdmin && (
-        <PermissionCheckboxes abilities={abilities} onChange={setAbilities} />
+      {canEditAbilities && availablePermissions.length > 0 && (
+        <PermissionCheckboxes
+          abilities={abilities}
+          availablePermissions={availablePermissions}
+          onChange={setAbilities}
+        />
       )}
     </form>
   );
 }
 
+function isPrivilegedAdminType(adminType: AdminType | null | undefined): boolean {
+  return (
+    adminType === ADMIN_TYPE.DEVELOPER || adminType === ADMIN_TYPE.SUPERADMIN
+  );
+}
+
+function canManageAdminAccounts(account: AdminMeOutput | null): boolean {
+  if (!account) return false;
+  if (isPrivilegedAdminType(account.admin_type)) return true;
+  return hasPermission(account.scopes ?? EMPTY_SCOPES, PERMISSION.ADMIN_MANAGE);
+}
+
+function resolveAssignableAdminPermissions(
+  account: AdminMeOutput | null,
+): readonly PermissionMeta[] {
+  if (!account) return [];
+  if (isPrivilegedAdminType(account.admin_type)) {
+    return ADMIN_PERMISSION_META;
+  }
+
+  const scopes = account.scopes ?? EMPTY_SCOPES;
+  return ADMIN_PERMISSION_META.filter(
+    (meta) =>
+      hasPermission(scopes, meta.key) &&
+      !RESTRICTED_ADMIN_ASSIGNMENT_PERMISSIONS.includes(meta.key),
+  );
+}
+
 export default function AdminsPage() {
   const { t } = useTranslation();
+  const account = useAuthStore((state) => state.account);
   const [summary, setSummary] = useState<AdminDatatableSummaryOutput | null>(
     null,
   );
+  const [deletingAdminId, setDeletingAdminId] = useState<string | null>(null);
   const summaryRequestId = useRef(0);
+  const canManageAdmins = useMemo(
+    () => canManageAdminAccounts(account),
+    [account],
+  );
+  const assignableAdminPermissions = useMemo(
+    () => resolveAssignableAdminPermissions(account),
+    [account],
+  );
 
   const handleDatatablePostCall = (
     event: DataTablePostCallEvent<AdminDatatableRow>,
@@ -286,53 +439,85 @@ export default function AdminsPage() {
 
   const handleCreate = (refresh: () => void) => {
     const formId = `admin-create-form-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    useModalStore.getState().open({
+    let modalId = "";
+    const renderFooter = (busy: boolean) => (
+      <>
+        <Button
+          type="button"
+          onClick={() => useModalStore.getState().close()}
+          variant="secondary"
+          disabled={busy}
+        >
+          {t("Cancel")}
+        </Button>
+        <Button type="submit" form={formId} variant="primary" busy={busy}>
+          {busy ? t("Creating…") : t("Create")}
+        </Button>
+      </>
+    );
+    modalId = useModalStore.getState().open({
       title: t("Create Admin"),
       size: "lg",
-      content: <CreateAdminForm onCreated={refresh} formId={formId} />,
-      footer: (
-        <>
-          <Button
-            type="button"
-            onClick={() => useModalStore.getState().close()}
-            variant="secondary"
-          >
-            {t("Cancel")}
-          </Button>
-          <Button type="submit" form={formId} variant="primary">
-            {t("Create")}
-          </Button>
-        </>
+      content: (
+        <CreateAdminForm
+          onCreated={refresh}
+          formId={formId}
+          availablePermissions={assignableAdminPermissions}
+          onBusyChange={(busy) => {
+            if (!modalId) return;
+            useModalStore
+              .getState()
+              .update(modalId, { footer: renderFooter(busy) });
+          }}
+        />
       ),
+      footer: renderFooter(false),
     });
   };
 
   const handleEdit = (admin: AdminDatatableRow, refresh: () => void) => {
     const formId = `admin-edit-form-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    useModalStore.getState().open({
+    let modalId = "";
+    const renderFooter = (busy: boolean) => (
+      <>
+        <Button
+          type="button"
+          onClick={() => useModalStore.getState().close()}
+          variant="secondary"
+          disabled={busy}
+        >
+          {t("Cancel")}
+        </Button>
+        <Button type="submit" form={formId} variant="primary" busy={busy}>
+          {busy ? t("Saving…") : t("Save")}
+        </Button>
+      </>
+    );
+    modalId = useModalStore.getState().open({
       title: t("Edit Admin"),
       size: "lg",
       content: (
-        <EditAdminForm admin={admin} onUpdated={refresh} formId={formId} />
+        <EditAdminForm
+          admin={admin}
+          onUpdated={refresh}
+          formId={formId}
+          availablePermissions={assignableAdminPermissions}
+          onBusyChange={(busy) => {
+            if (!modalId) return;
+            useModalStore
+              .getState()
+              .update(modalId, { footer: renderFooter(busy) });
+          }}
+        />
       ),
-      footer: (
-        <>
-          <Button
-            type="button"
-            onClick={() => useModalStore.getState().close()}
-            variant="secondary"
-          >
-            {t("Cancel")}
-          </Button>
-          <Button type="submit" form={formId} variant="primary">
-            {t("Save")}
-          </Button>
-        </>
-      ),
+      footer: renderFooter(false),
     });
   };
 
-  const handleDelete = async (admin: AdminDatatableRow, refresh: () => void) => {
+  const handleDelete = async (
+    admin: AdminDatatableRow,
+    refresh: () => void,
+  ) => {
     await alertConfirm({
       title: t("Delete Admin"),
       message: t('Are you sure you want to delete ":username"?', {
@@ -341,6 +526,8 @@ export default function AdminsPage() {
       confirmText: t("Delete"),
       callback: async (result) => {
         if (result.isConfirmed) {
+          if (deletingAdminId === admin.id) return;
+          setDeletingAdminId(admin.id);
           try {
             await api.delete<ApiResponse<AdminDeleteOutput>>(
               `admins/${admin.id}`,
@@ -352,6 +539,8 @@ export default function AdminsPage() {
               title: t("Error"),
               message: t("Failed to delete admin."),
             });
+          } finally {
+            setDeletingAdminId(null);
           }
         }
       },
@@ -363,16 +552,20 @@ export default function AdminsPage() {
       url="datatable/admin/query"
       title={t("Admins")}
       subtitle={t("Manage administrator accounts")}
-      headerActions={(refresh) => (
-        <Button
-          onClick={() => handleCreate(refresh)}
-          variant="primary"
-          size="sm"
-        >
-          <Plus size={16} />
-          {t("Create Admin")}
-        </Button>
-      )}
+      headerActions={
+        canManageAdmins
+          ? (refresh) => (
+              <Button
+                onClick={() => handleCreate(refresh)}
+                variant="primary"
+                size="sm"
+              >
+                <Plus size={16} />
+                {t("Create Admin")}
+              </Button>
+            )
+          : undefined
+      }
       headerContent={
         ENABLE_SUMMARY_CARDS && summary ? (
           <div className="grid gap-2 sm:grid-cols-4">
@@ -384,56 +577,66 @@ export default function AdminsPage() {
             </div>
             <div className="rounded-lg border border-border bg-surface px-3 py-2 text-sm">
               <p className="text-xs text-muted">{t("Developers")}</p>
-              <p className="font-semibold">
-                {summary.developer_count}
-              </p>
+              <p className="font-semibold">{summary.developer_count}</p>
             </div>
             <div className="rounded-lg border border-border bg-surface px-3 py-2 text-sm">
               <p className="text-xs text-muted">{t("Super Admins")}</p>
-              <p className="font-semibold">
-                {summary.superadmin_count}
-              </p>
+              <p className="font-semibold">{summary.superadmin_count}</p>
             </div>
             <div className="rounded-lg border border-border bg-surface px-3 py-2 text-sm">
               <p className="text-xs text-muted">{t("Admins")}</p>
-              <p className="font-semibold">
-                {summary.admin_count}
-              </p>
+              <p className="font-semibold">{summary.admin_count}</p>
             </div>
           </div>
         ) : undefined
       }
       columns={[
-        {
-          key: "actions",
-          label: t("Actions"),
-          sortable: false,
-          render: (admin, ctx) => (
-            <div className="flex gap-1">
-              <Button
-                onClick={() => handleEdit(admin, ctx.refresh)}
-                variant="plain"
-                size="sm"
-                iconOnly
-                title={t("Edit")}
-              >
-                <Pencil size={16} />
-              </Button>
-              {admin.admin_type === ADMIN_TYPE.ADMIN && (
-                <Button
-                  onClick={() => handleDelete(admin, ctx.refresh)}
-                  variant="plain"
-                  size="sm"
-                  iconOnly
-                  className="hover:bg-red-50 hover:text-red-600"
-                  title={t("Delete")}
-                >
-                  <Trash2 size={16} />
-                </Button>
-              )}
-            </div>
-          ),
-        },
+        ...(canManageAdmins
+          ? [
+              {
+                key: "actions",
+                label: t("Actions"),
+                sortable: false,
+                render: (
+                  admin: AdminDatatableRow,
+                  ctx: DataTableCellContext<AdminDatatableRow>,
+                ) => {
+                  const deleting = deletingAdminId === admin.id;
+                  const isSelf = account?.id === admin.id;
+                  return (
+                    <div className="flex gap-1">
+                      {!isSelf && (
+                        <Button
+                          onClick={() => handleEdit(admin, ctx.refresh)}
+                          variant="plain"
+                          size="sm"
+                          iconOnly
+                          disabled={deleting}
+                          title={t("Edit")}
+                        >
+                          <Pencil size={16} />
+                        </Button>
+                      )}
+                      {!isSelf && admin.admin_type === ADMIN_TYPE.ADMIN && (
+                        <Button
+                          onClick={() => handleDelete(admin, ctx.refresh)}
+                          variant="plain"
+                          size="sm"
+                          iconOnly
+                          busy={deleting}
+                          disabled={deleting}
+                          className="hover:bg-red-50 hover:text-red-600"
+                          title={t("Delete")}
+                        >
+                          <Trash2 size={16} />
+                        </Button>
+                      )}
+                    </div>
+                  );
+                },
+              },
+            ]
+          : []),
         {
           key: "username",
           label: t("Username"),
@@ -460,7 +663,7 @@ export default function AdminsPage() {
           key: "abilities",
           label: t("Permissions"),
           sortable: false,
-          render: (admin) => <PermissionBadges abilities={admin.abilities} />,
+          render: (admin) => <PermissionSummary admin={admin} />,
         },
         {
           key: "created_at",

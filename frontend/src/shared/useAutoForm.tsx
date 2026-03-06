@@ -88,8 +88,8 @@ interface AutoFormConfig {
   tiptapImageUpload?: TiptapImageUploadHandler;
   /** Static key-value pairs merged into every submission (not rendered as form fields). */
   extraPayload?: Record<string, unknown>;
-  onSuccess?: (data: unknown) => void;
-  onError?: (error: unknown) => void;
+  onSuccess?: (data: unknown) => void | Promise<void>;
+  onError?: (error: unknown) => void | Promise<void>;
 }
 
 interface AutoFormErrors {
@@ -151,8 +151,8 @@ function normalizeFilePreview(value: AutoFormDefaultValue): FilePreviewItem | nu
       size: value.size,
     };
   }
-  if (typeof value === "object") {
-    const record = value as Record<string, unknown>;
+  if (typeof value === "object" && !Array.isArray(value)) {
+    const record = value as unknown as Record<string, unknown>;
     const url = typeof record.url === "string" && record.url.trim().length > 0 ? record.url : undefined;
     const nameFromRecord = typeof record.name === "string" && record.name.trim().length > 0 ? record.name : undefined;
     const mimeType = typeof record.mimeType === "string" && record.mimeType.trim().length > 0 ? record.mimeType : undefined;
@@ -261,6 +261,11 @@ function appendFormDataValue(formData: FormData, key: string, value: unknown): v
   }
 }
 
+function shouldSerializeEmptyAsNull(field: FieldDef): boolean {
+  if (field.required) return false;
+  return field.type !== "checkbox" && field.type !== "file" && field.type !== "files";
+}
+
 export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFormResult {
   const {
     url,
@@ -338,7 +343,17 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
       }
 
       const value = values[field.name] ?? "";
-      payload[field.name] = field.type === "checkbox" ? (value ? "1" : "0") : value;
+      if (field.type === "checkbox") {
+        payload[field.name] = value ? "1" : "0";
+        continue;
+      }
+
+      if (shouldSerializeEmptyAsNull(field) && value.trim() === "") {
+        payload[field.name] = null;
+        continue;
+      }
+
+      payload[field.name] = value;
     }
 
     let requestBody: Record<string, unknown> | FormData = payload;
@@ -352,14 +367,13 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
 
     try {
       const response = await api[method](url, requestBody);
-      onSuccess?.(response.data?.data ?? response.data);
+      await onSuccess?.(response.data?.data ?? response.data);
     } catch (err) {
       const axiosErr = err as AxiosError<{ message?: string; errors?: Record<string, string[]> }>;
       const body = axiosErr.response?.data;
-      const status = axiosErr.response?.status;
       if (body) {
         const message = body.message ?? "Something went wrong";
-        setGeneralError(status ? `[HTTP ${status}] ${message}` : message);
+        setGeneralError(message);
         if (body.errors) {
           const mapped: Record<string, string[]> = {};
           for (const [key, msgs] of Object.entries(body.errors)) {
@@ -372,10 +386,9 @@ export function useAutoForm(api: AxiosInstance, config: AutoFormConfig): AutoFor
           setFieldErrors(mapped);
         }
       } else {
-        const message = axiosErr.message || "Something went wrong";
-        setGeneralError(status ? `[HTTP ${status}] ${message}` : message);
+        setGeneralError(axiosErr.message || "Something went wrong");
       }
-      onError?.(err);
+      await onError?.(err);
     } finally {
       setBusy(false);
     }
