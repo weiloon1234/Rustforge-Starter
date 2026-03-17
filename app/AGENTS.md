@@ -10,7 +10,7 @@ Design rules:
 
 ## SSOT Files
 
-- `schemas/*.toml` — schema-defined models/enums.
+- `models/*.rs` — schema-defined models/enums/helper methods for generated Views.
 - `permissions.toml` — permission catalog.
 - `configs.toml` — auth/language/realtime/CORS config.
 - `../i18n/*.json` — translation keys and values.
@@ -50,7 +50,7 @@ When a shared runtime dependency is needed in handlers/datatables/workflows, add
 
 Use this when the domain is schema-driven.
 
-1. Add or update model/enum in `schemas/{domain}.toml`.
+1. Add or update model/enum in `models/{domain}.rs`.
 2. Add matching SQL migration in `../migrations/{timestamp}_{name}.sql`.
 3. Add/adjust permissions in `permissions.toml`.
 4. Add contracts in `src/contracts/api/v1/{portal}/{domain}.rs`.
@@ -230,8 +230,10 @@ cargo run -p app --bin export-types
 All user-facing strings must go through translation keys.
 
 - Rust side: use `core_i18n::t()` / `t_args()`.
-- Add keys in `../i18n/*.json`.
-- Permission translations must use permission keys from `permissions.toml` as i18n keys (for example `admin.read`, `country.manage`).
+- The i18n key IS the English text — it serves as the automatic fallback when no translation is found.
+- **`en.json` must only contain entries where key ≠ value** (e.g., `"enum.credit_type.credit1": "Cash Point"`, `"Adjust Credits": "User Credit Manage"`). Do NOT add redundant `"Submit": "Submit"` entries — the key itself is already English.
+- `zh.json` (and other non-English locales) must contain ALL keys since every key needs a translation.
+- Permission/enum translations use non-English keys (e.g., `admin.read`, `enum.credit_type.credit1`) — these MUST exist in both `en.json` and `zh.json`.
 - When adding/updating permissions, add/update those permission-key translations in both `../i18n/en.json` and `../i18n/zh.json` in the same change.
 - Keep permission-key entries grouped together in a dedicated nearby block in each locale file (do not scatter or append randomly).
 

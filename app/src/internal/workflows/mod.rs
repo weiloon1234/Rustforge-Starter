@@ -1,4 +1,16 @@
 pub mod admin;
 pub mod admin_auth;
+pub mod bank;
+pub mod company_bank_account;
+pub mod company_crypto_account;
 pub mod content_page;
 pub mod country;
+pub mod crypto_network;
+pub mod deposit;
+pub mod introducer_change;
+pub mod notification;
+pub mod user_auth;
+pub mod user_manage;
+pub mod user_credit;
+pub mod user_team;
+pub mod withdrawal;

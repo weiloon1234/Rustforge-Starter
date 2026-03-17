@@ -15,6 +15,7 @@ FRAMEWORK_DOCS_DIR := $(PUBLIC_PATH)/$(FRAMEWORK_DOCS_ROUTE)
 help:
 	@echo "Starter Makefile"
 	@echo "--------------"
+	@echo "  make install-tools       # Install cargo-watch, sqlx-cli"
 	@echo "  make dev                 # Rust API + all Vite portals"
 	@echo "  make dev-api             # Rust API only (cargo-watch)"
 	@echo "  make dev-frontend        # All Vite portals"
@@ -29,8 +30,8 @@ help:
 	@echo "  make route-list"
 	@echo "  make migrate-pump"
 	@echo "  make migrate-run"
+	@echo "  make deploy              # Git pull + build + migrate + restart"
 	@echo "  make server-install"
-	@echo "  make server-update"
 	@echo "  make assets-publish ASSETS_ARGS='--from frontend/dist --clean'"
 	@echo "  make framework-docs-build"
 	@echo "  make check"
@@ -40,6 +41,7 @@ help:
 .PHONY: install-tools
 install-tools:
 	@command -v cargo-watch >/dev/null 2>&1 || cargo install cargo-watch
+	@command -v sqlx >/dev/null 2>&1 || cargo install sqlx-cli --no-default-features --features postgres
 
 .PHONY: install-frontend
 install-frontend:
@@ -72,8 +74,11 @@ dev-frontend: ensure-frontend-deps
 .PHONY: dev
 dev: ensure-frontend-deps
 	@command -v cargo-watch >/dev/null 2>&1 || (echo "cargo-watch not found. Run: make install-tools" && exit 1)
+	@echo "Building websocket-server..."
+	@cargo build -p app --bin websocket-server
 	@trap 'kill 0' EXIT; \
 	RUN_WORKER=true cargo watch -x "run -p app --bin api-server" & \
+	./target/debug/websocket-server & \
 	npm --prefix frontend run dev:user & \
 	npm --prefix frontend run dev:admin & \
 	wait
@@ -110,13 +115,13 @@ migrate-pump:
 migrate-run:
 	./console migrate run
 
+.PHONY: deploy
+deploy:
+	./scripts/deploy.sh
+
 .PHONY: server-install
 server-install:
 	sudo ./scripts/install-ubuntu.sh
-
-.PHONY: server-update
-server-update:
-	./scripts/update.sh
 
 .PHONY: assets-publish
 assets-publish:

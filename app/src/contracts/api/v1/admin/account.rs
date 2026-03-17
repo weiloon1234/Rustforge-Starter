@@ -2,9 +2,7 @@ use crate::contracts::types::username::UsernameString;
 use core_web::contracts::rustforge_contract;
 use core_web::ids::SnowflakeId;
 use core_web::Patch;
-use generated::{
-    extensions::admin::types::AdminViewComputedExt, models::AdminType, permissions::Permission,
-};
+use generated::{models::AdminType, permissions::Permission};
 use schemars::JsonSchema;
 use serde::Serialize;
 use ts_rs::TS;
@@ -32,15 +30,11 @@ pub struct CreateAdminInput {
 #[derive(TS)]
 #[ts(export, export_to = "admin/types/")]
 pub struct UpdateAdminInput {
-    #[serde(skip, default)]
-    __target_id: i64,
+    #[serde(default)]
+    pub id: SnowflakeId,
     #[serde(default)]
     #[rf(nested)]
-    #[rf(async_unique(
-        table = "admin",
-        column = "username",
-        ignore(column = "id", field = "__target_id")
-    ))]
+    #[rf(async_unique(table = "admin", column = "username", ignore = "id"))]
     pub username: Option<UsernameString>,
     #[serde(default)]
     #[rf(email)]
@@ -53,55 +47,6 @@ pub struct UpdateAdminInput {
     pub password: Option<String>,
     #[serde(default)]
     pub abilities: Option<Vec<Permission>>,
-}
-
-impl CreateAdminInput {
-    pub fn normalize(mut self) -> Self {
-        self.email = self.email.and_then(|value| {
-            let trimmed = value.trim();
-            if trimmed.is_empty() {
-                None
-            } else {
-                Some(trimmed.to_string())
-            }
-        });
-        self
-    }
-}
-
-impl UpdateAdminInput {
-    pub fn with_target_id(mut self, id: i64) -> Self {
-        self.__target_id = id;
-        self
-    }
-
-    pub fn normalize(mut self) -> Self {
-        self.email = normalize_email_patch(self.email);
-        self.password = self.password.and_then(|value| {
-            let trimmed = value.trim();
-            if trimmed.is_empty() {
-                None
-            } else {
-                Some(trimmed.to_string())
-            }
-        });
-        self
-    }
-}
-
-fn normalize_email_patch(email: Patch<String>) -> Patch<String> {
-    match email {
-        Patch::Missing => Patch::Missing,
-        Patch::Null => Patch::Null,
-        Patch::Value(value) => {
-            let trimmed = value.trim();
-            if trimmed.is_empty() {
-                Patch::Null
-            } else {
-                Patch::Value(trimmed.to_string())
-            }
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema, TS)]
@@ -123,23 +68,14 @@ pub struct AdminOutput {
     pub updated_at: time::OffsetDateTime,
 }
 
-impl From<generated::models::AdminView> for AdminOutput {
-    fn from(value: generated::models::AdminView) -> Self {
-        let abilities = value
-            .abilities
-            .as_array()
-            .map(|items| {
-                items
-                    .iter()
-                    .filter_map(|item| item.as_str())
-                    .filter_map(Permission::from_str)
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default();
+impl From<generated::models::AdminRecord> for AdminOutput {
+    fn from(value: generated::models::AdminRecord) -> Self {
+        let abilities = value.parsed_abilities();
+        let identity = value.identity();
 
         Self {
             id: value.id.into(),
-            identity: value.identity(),
+            identity,
             username: value.username,
             email: value.email,
             name: value.name,

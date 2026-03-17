@@ -2,7 +2,6 @@ use axum::{
     extract::{FromRequestParts, State},
     http::request::Parts,
     middleware::from_fn_with_state,
-    Json,
 };
 use core_i18n::t;
 use core_web::{
@@ -10,7 +9,6 @@ use core_web::{
     contracts::ContractJson,
     error::AppError,
     extract::request_headers::RequestHeaders,
-    extract::validation::transform_validation_errors,
     openapi::{
         aide::axum::routing::{get_with, patch_with, post_with},
         ApiRouter,
@@ -18,12 +16,10 @@ use core_web::{
     response::ApiResponse,
     utils::cookie,
 };
-use generated::extensions::admin::types::AdminViewComputedExt;
 use generated::guards::AdminGuard;
 use std::ops::Deref;
 use time::Duration;
 use tower_cookies::{cookie::SameSite, Cookie, Cookies};
-use validator::Validate;
 
 use crate::{
     contracts::api::v1::admin::auth::{
@@ -122,9 +118,8 @@ pub fn router(state: AppApiState) -> ApiRouter {
 async fn login(
     State(state): State<AppApiState>,
     cookies: RequestCookies,
-    req: ContractJson<AdminLoginInput>,
+    ContractJson(req): ContractJson<AdminLoginInput>,
 ) -> Result<ApiResponse<AdminAuthOutput>, AppError> {
-    let req = req.0;
     let (_admin, tokens) = workflow::login(&state, &req.username, &req.password).await?;
     let output = to_auth_output(&state, &cookies, req.client_type, tokens);
     Ok(ApiResponse::success(output, &t("Login successful")))
@@ -134,9 +129,8 @@ async fn refresh(
     State(state): State<AppApiState>,
     headers: RequestHeaders,
     cookies: RequestCookies,
-    req: ContractJson<AdminRefreshInput>,
+    ContractJson(req): ContractJson<AdminRefreshInput>,
 ) -> Result<ApiResponse<AdminAuthOutput>, AppError> {
-    let req = req.0;
     let refresh_token = auth::extract_refresh_token_for_client(
         &headers,
         AdminGuard::name(),
@@ -155,9 +149,8 @@ async fn logout(
     headers: RequestHeaders,
     cookies: RequestCookies,
     _auth: AuthUser<AdminGuard>,
-    req: ContractJson<AdminLogoutInput>,
+    ContractJson(req): ContractJson<AdminLogoutInput>,
 ) -> Result<ApiResponse<AdminLogoutOutput>, AppError> {
-    let req = req.0;
     let refresh_token = auth::extract_refresh_token_for_client(
         &headers,
         AdminGuard::name(),
@@ -199,9 +192,8 @@ async fn me(auth: AuthUser<AdminGuard>) -> Result<ApiResponse<AdminMeOutput>, Ap
 async fn profile_update(
     State(state): State<AppApiState>,
     auth: AuthUser<AdminGuard>,
-    Json(req): Json<AdminProfileUpdateInput>,
+    ContractJson(req): ContractJson<AdminProfileUpdateInput>,
 ) -> Result<ApiResponse<AdminProfileUpdateOutput>, AppError> {
-    let req = validate_profile_update_input(req)?;
     let admin = workflow::profile_update(&state, auth.user.id, req).await?;
     let identity = admin.identity();
     Ok(ApiResponse::success(
@@ -221,9 +213,8 @@ async fn profile_update(
 async fn locale_update(
     State(state): State<AppApiState>,
     auth: AuthUser<AdminGuard>,
-    req: ContractJson<AdminLocaleUpdateInput>,
+    ContractJson(req): ContractJson<AdminLocaleUpdateInput>,
 ) -> Result<ApiResponse<AdminLocaleUpdateOutput>, AppError> {
-    let req = req.0;
     let locale = workflow::locale_update(&state, auth.user.id, req).await?;
     Ok(ApiResponse::success(
         AdminLocaleUpdateOutput { locale },
@@ -234,27 +225,13 @@ async fn locale_update(
 async fn password_update(
     State(state): State<AppApiState>,
     auth: AuthUser<AdminGuard>,
-    req: ContractJson<AdminPasswordUpdateInput>,
+    ContractJson(req): ContractJson<AdminPasswordUpdateInput>,
 ) -> Result<ApiResponse<AdminPasswordUpdateOutput>, AppError> {
-    let req = req.0;
     workflow::password_update(&state, auth.user.id, req).await?;
     Ok(ApiResponse::success(
         AdminPasswordUpdateOutput { updated: true },
         &t("Password updated successfully"),
     ))
-}
-
-fn validate_profile_update_input(
-    req: AdminProfileUpdateInput,
-) -> Result<AdminProfileUpdateInput, AppError> {
-    let req = req.normalize();
-    if let Err(e) = req.validate() {
-        return Err(AppError::Validation {
-            message: t("Validation failed"),
-            errors: transform_validation_errors(e),
-        });
-    }
-    Ok(req)
 }
 
 fn to_auth_output(

@@ -1,7 +1,9 @@
 import {
+  Banknote,
   LayoutDashboard,
   List,
   Settings,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -51,6 +53,70 @@ export const navigation: NavItem[] = [
     path: "/",
   },
   {
+    label: "User",
+    icon: Users,
+    children: [
+      {
+        label: "Manage Users",
+        path: "/user/manage",
+        permissions: [PERMISSION.USER_READ, PERMISSION.USER_MANAGE],
+      },
+      {
+        label: "User Hierarchy",
+        path: "/user/hierarchy",
+        permissions: [PERMISSION.USER_HIERARCHY],
+      },
+      {
+        label: "Adjust Credits",
+        path: "/user/adjust-credits",
+        permissions: [PERMISSION.USER_CREDIT_MANAGE],
+      },
+      {
+        label: "Introducer Changes",
+        path: "/user/introducer-changes",
+        permissions: [PERMISSION.USER_CHANGE_INTRODUCER],
+      },
+    ],
+  },
+  {
+    label: "Finance",
+    icon: Banknote,
+    children: [
+      {
+        label: "Deposits",
+        path: "/finance/deposits",
+        permissions: [PERMISSION.DEPOSIT_READ, PERMISSION.DEPOSIT_MANAGE],
+        notificationKey: "deposit",
+      },
+      {
+        label: "Withdrawals",
+        path: "/finance/withdrawals",
+        permissions: [PERMISSION.WITHDRAWAL_READ, PERMISSION.WITHDRAWAL_MANAGE],
+        notificationKey: "withdrawal",
+      },
+      {
+        label: "Banks",
+        path: "/finance/banks",
+        permissions: [PERMISSION.BANK_READ, PERMISSION.BANK_MANAGE],
+      },
+      {
+        label: "Crypto Networks",
+        path: "/finance/crypto-networks",
+        permissions: [PERMISSION.CRYPTO_NETWORK_READ, PERMISSION.CRYPTO_NETWORK_MANAGE],
+      },
+      {
+        label: "Company Bank Accounts",
+        path: "/finance/company-bank-accounts",
+        permissions: [PERMISSION.COMPANY_BANK_ACCOUNT_READ, PERMISSION.COMPANY_BANK_ACCOUNT_MANAGE],
+      },
+      {
+        label: "Company Crypto Accounts",
+        path: "/finance/company-crypto-accounts",
+        permissions: [PERMISSION.COMPANY_CRYPTO_ACCOUNT_READ, PERMISSION.COMPANY_CRYPTO_ACCOUNT_MANAGE],
+      },
+    ],
+  },
+  {
     label: "Other",
     icon: Settings,
     children: [
@@ -69,6 +135,11 @@ export const navigation: NavItem[] = [
         path: "/other/countries",
         permissions: [PERMISSION.COUNTRY_READ, PERMISSION.COUNTRY_MANAGE],
       },
+      {
+        label: "Audit Logs",
+        path: "/other/audit-logs",
+        permissions: [PERMISSION.AUDIT_LOG_READ],
+      },
     ],
   },
   {
@@ -79,13 +150,26 @@ export const navigation: NavItem[] = [
       {
         label: "HTTP Client Logs",
         path: "/developer/http-client-logs",
-        permissions: [PERMISSION.ADMIN_READ, PERMISSION.ADMIN_MANAGE],
         admin_types: [ADMIN_TYPE.DEVELOPER],
       },
       {
         label: "Webhook Logs",
         path: "/developer/webhook-logs",
-        permissions: [PERMISSION.ADMIN_READ, PERMISSION.ADMIN_MANAGE],
+        admin_types: [ADMIN_TYPE.DEVELOPER],
+      },
+      {
+        label: "SQL Profiler Requests",
+        path: "/developer/sql-profiler-requests",
+        admin_types: [ADMIN_TYPE.DEVELOPER],
+      },
+      {
+        label: "SQL Profiler Queries",
+        path: "/developer/sql-profiler-queries",
+        admin_types: [ADMIN_TYPE.DEVELOPER],
+      },
+      {
+        label: "Log Viewer",
+        path: "/developer/log-viewer",
         admin_types: [ADMIN_TYPE.DEVELOPER],
       },
     ],

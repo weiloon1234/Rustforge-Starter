@@ -1,5 +1,17 @@
 pub mod account;
 pub mod auth;
+pub mod bank;
+pub mod company_bank_account;
+pub mod company_crypto_account;
 pub mod content_page;
 pub mod country;
+pub mod crypto_network;
+pub mod deposit;
+pub mod developer_logs;
+pub mod notification;
+pub mod hierarchy;
+pub mod introducer_change;
 pub mod tiptap_upload;
+pub mod user;
+pub mod user_credit;
+pub mod withdrawal;

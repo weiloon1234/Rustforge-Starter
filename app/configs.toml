@@ -5,11 +5,7 @@ timezone = "+08:00"
 
 [attachment_type.image]
 allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"]
-
-[attachment_type.image.resize]
-width = 1920
-height = 1080
-quality = 82
+max_size = 5242880
 
 [auth]
 default = "admin"
@@ -19,10 +15,40 @@ provider = "admin"
 ttl_min = 120
 refresh_ttl_days = 30
 
+[auth.guards.user]
+provider = "user"
+ttl_min = 120
+refresh_ttl_days = 30
+
 [realtime.channels.public]
 enabled = true
 guard = ""
 presence_enabled = false
+
+[realtime.channels.user]
+enabled = true
+guard = "user"
+presence_enabled = true
+
+[realtime.channels.admin]
+enabled = true
+guard = "admin"
+presence_enabled = false
+
+# ── Finance ───────────────────────────────────────────────
+# Fee settings for deposits and withdrawals.
+# These are reference values — actual calculation is in Rust config structs.
+[deposit]
+# Fee percentage (0.0 = no fee, 0.02 = 2%)
+fee_percentage = 0.0
+# Fixed fee amount added on top of percentage
+fee_fixed = 0.0
+
+[withdrawal]
+fee_percentage = 0.0
+fee_fixed = 0.0
+# Minimum withdrawal amount
+min_amount = 0.0
 
 # ── CORS ──────────────────────────────────────────────────
 # Mirrors Laravel config/cors.php conventions.

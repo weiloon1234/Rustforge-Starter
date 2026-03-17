@@ -272,6 +272,7 @@ export interface CountryRuntime {
   longitude?: number | null;
   independent?: boolean | null;
   status: CountryStatus;
+  is_default: boolean;
   assignment_status?: string | null;
   un_member?: boolean | null;
   flag_emoji?: string | null;
@@ -303,6 +304,8 @@ export type LocaleCode = {locale_union};
 export const DEFAULT_LOCALE: LocaleCode = \"{default_locale}\";
 
 export type LocalizedText<TLocale extends string = LocaleCode> = Record<TLocale, string>;
+
+export type LocalizedInput<TLocale extends string = LocaleCode> = Partial<Record<TLocale, string | null>>;
 
 // field -> owner_id -> locale -> value
 export type LocalizedMap<TLocale extends string = LocaleCode> = Record<

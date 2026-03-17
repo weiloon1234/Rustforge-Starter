@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Pencil } from "lucide-react";
+import { Pencil, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { CountryDatatableRow } from "@admin/types";
 import { PERMISSION } from "@admin/types";
@@ -8,7 +8,7 @@ import { useAuthStore } from "@admin/stores/auth";
 import {
   Button,
   DataTable,
-  Select,
+  alertConfirm,
   alertError,
   alertSuccess,
   formatDateTime,
@@ -45,10 +45,17 @@ function EditCountryStatusForm({
   const { t } = useTranslation();
   const close = useModalStore((s) => s.close);
 
-  const { submit, busy, form, errors } = useAutoForm(api, {
+  const { submit, busy, form } = useAutoForm(api, {
     url: `countries/${row.iso2}/status`,
     method: "patch",
     fields: [
+      {
+        name: "country",
+        type: "text",
+        label: t("Country"),
+        disabled: true,
+        span: 1,
+      },
       {
         name: "status",
         type: "select",
@@ -58,9 +65,11 @@ function EditCountryStatusForm({
           { value: COUNTRY_STATUS_DISABLED, label: t("Disabled") },
         ],
         required: true,
+        span: 1,
       },
     ],
     defaults: {
+      country: `${row.name} (${row.iso2})`,
       status: row.status,
     },
     onSuccess: () => {
@@ -81,26 +90,7 @@ function EditCountryStatusForm({
   }, [busy, onBusyChange]);
 
   return (
-    <form id={formId} onSubmit={submit} className="space-y-4">
-      {errors.general && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-          {errors.general}
-        </p>
-      )}
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Select
-          containerClassName="mb-0"
-          label={t("Country")}
-          value={row.iso2}
-          disabled
-          options={[{ value: row.iso2, label: `${row.name} (${row.iso2})` }]}
-        />
-        {busy ? (
-          <div className="flex items-end text-xs text-muted">{t("Saving…")}</div>
-        ) : (
-          <div />
-        )}
-      </div>
+    <form id={formId} onSubmit={submit}>
       {form}
     </form>
   );
@@ -113,6 +103,29 @@ export default function CountriesPage() {
     PERMISSION.COUNTRY_MANAGE,
     account,
   );
+
+  const handleSetDefault = async (row: CountryDatatableRow, refresh: () => void) => {
+    await alertConfirm({
+      title: t("Set Default"),
+      message: t("Are you sure you want to set :name as the default country?", {
+        name: `${row.name} (${row.iso2})`,
+      }),
+      confirmText: t("Set Default"),
+      callback: async (result) => {
+        if (!result.isConfirmed) return;
+        try {
+          await api.patch(`countries/${row.iso2}/default`);
+          alertSuccess({ title: t("Success"), message: t("Country default updated") });
+          refresh();
+        } catch (error) {
+          alertError({
+            title: t("Error"),
+            message: normalizeErrorMessage(error, t("Failed to set default country.")),
+          });
+        }
+      },
+    });
+  };
 
   const openEditModal = (row: CountryDatatableRow, refresh: () => void) => {
     const formId = `country-status-form-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -162,19 +175,43 @@ export default function CountriesPage() {
           sortable: false,
           render: (row, ctx) =>
             canManage ? (
-              <Button
-                type="button"
-                onClick={() => openEditModal(row, ctx.refresh)}
-                variant="plain"
-                size="sm"
-                iconOnly
-                title={t("Edit")}
-              >
-                <Pencil size={16} />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  onClick={() => openEditModal(row, ctx.refresh)}
+                  variant="plain"
+                  size="sm"
+                  iconOnly
+                  title={t("Edit")}
+                >
+                  <Pencil size={16} />
+                </Button>
+                {!row.is_default && (
+                  <Button
+                    type="button"
+                    onClick={() => handleSetDefault(row, ctx.refresh)}
+                    variant="plain"
+                    size="sm"
+                    iconOnly
+                    title={t("Set Default")}
+                  >
+                    <Star size={16} />
+                  </Button>
+                )}
+              </div>
             ) : (
               "—"
             ),
+        },
+        {
+          key: "is_default",
+          label: t("Default"),
+          render: (row) =>
+            row.is_default ? (
+              <span className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                {t("Default")}
+              </span>
+            ) : null,
         },
         {
           key: "status",
@@ -198,7 +235,7 @@ export default function CountriesPage() {
         },
         {
           key: "name",
-          label: t("Name"),
+          label: t("Country Name"),
         },
         {
           key: "calling_code",

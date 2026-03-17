@@ -26,6 +26,44 @@ pub enum Permission {
     CountryRead,
     #[serde(rename = "country.manage")]
     CountryManage,
+    #[serde(rename = "user.read")]
+    UserRead,
+    #[serde(rename = "user.manage")]
+    UserManage,
+    #[serde(rename = "user.hierarchy")]
+    UserHierarchy,
+    #[serde(rename = "user.change_introducer")]
+    UserChangeIntroducer,
+    #[serde(rename = "user.credit_read")]
+    UserCreditRead,
+    #[serde(rename = "user.credit_manage")]
+    UserCreditManage,
+    #[serde(rename = "audit_log.read")]
+    AuditLogRead,
+    #[serde(rename = "deposit.read")]
+    DepositRead,
+    #[serde(rename = "deposit.manage")]
+    DepositManage,
+    #[serde(rename = "withdrawal.read")]
+    WithdrawalRead,
+    #[serde(rename = "withdrawal.manage")]
+    WithdrawalManage,
+    #[serde(rename = "bank.read")]
+    BankRead,
+    #[serde(rename = "bank.manage")]
+    BankManage,
+    #[serde(rename = "crypto_network.read")]
+    CryptoNetworkRead,
+    #[serde(rename = "crypto_network.manage")]
+    CryptoNetworkManage,
+    #[serde(rename = "company_bank_account.read")]
+    CompanyBankAccountRead,
+    #[serde(rename = "company_bank_account.manage")]
+    CompanyBankAccountManage,
+    #[serde(rename = "company_crypto_account.read")]
+    CompanyCryptoAccountRead,
+    #[serde(rename = "company_crypto_account.manage")]
+    CompanyCryptoAccountManage,
     #[serde(rename = "export")]
     Export,
 }
@@ -36,7 +74,7 @@ impl ts_rs::TS for Permission {
     fn name() -> String { "Permission".to_string() }
     fn inline() -> String { Self::name() }
     fn inline_flattened() -> String { panic!("Permission cannot be flattened") }
-    fn decl() -> String { "type Permission = \"admin.read\" | \"admin.manage\" | \"content_page.read\" | \"content_page.manage\" | \"country.read\" | \"country.manage\" | \"export\";".to_string() }
+    fn decl() -> String { "type Permission = \"admin.read\" | \"admin.manage\" | \"content_page.read\" | \"content_page.manage\" | \"country.read\" | \"country.manage\" | \"user.read\" | \"user.manage\" | \"user.hierarchy\" | \"user.change_introducer\" | \"user.credit_read\" | \"user.credit_manage\" | \"audit_log.read\" | \"deposit.read\" | \"deposit.manage\" | \"withdrawal.read\" | \"withdrawal.manage\" | \"bank.read\" | \"bank.manage\" | \"crypto_network.read\" | \"crypto_network.manage\" | \"company_bank_account.read\" | \"company_bank_account.manage\" | \"company_crypto_account.read\" | \"company_crypto_account.manage\" | \"export\";".to_string() }
     fn decl_concrete() -> String { Self::decl() }
 }
 
@@ -47,6 +85,25 @@ pub const PERMISSION_META: &[PermissionMeta] = &[
     PermissionMeta { key: "content_page.manage", guard: "admin", label: "Manage Content Pages", group: "content_page", description: "Update and delete non-system pages." },
     PermissionMeta { key: "country.read", guard: "admin", label: "Read Countries", group: "country", description: "View countries and country datatable records." },
     PermissionMeta { key: "country.manage", guard: "admin", label: "Manage Countries", group: "country", description: "Update country status." },
+    PermissionMeta { key: "user.read", guard: "admin", label: "Read Users", group: "user", description: "View user profiles and datatable records." },
+    PermissionMeta { key: "user.manage", guard: "admin", label: "Manage Users", group: "user", description: "Create/update/ban/unban user records." },
+    PermissionMeta { key: "user.hierarchy", guard: "admin", label: "View User Hierarchy", group: "user", description: "Browse user referral tree and navigate downlines." },
+    PermissionMeta { key: "user.change_introducer", guard: "admin", label: "Change User Introducer", group: "user", description: "Change a user's introducer and view change logs." },
+    PermissionMeta { key: "user.credit_read", guard: "admin", label: "Read User Credits", group: "user", description: "View credit transactions and balances." },
+    PermissionMeta { key: "user.credit_manage", guard: "admin", label: "Manage User Credits", group: "user", description: "Adjust user credit balances." },
+    PermissionMeta { key: "audit_log.read", guard: "admin", label: "Read Audit Logs", group: "audit_log", description: "View audit log datatable and inspect change details." },
+    PermissionMeta { key: "deposit.read", guard: "admin", label: "Read Deposits", group: "finance", description: "View deposit records." },
+    PermissionMeta { key: "deposit.manage", guard: "admin", label: "Manage Deposits", group: "finance", description: "Approve or reject deposit requests." },
+    PermissionMeta { key: "withdrawal.read", guard: "admin", label: "Read Withdrawals", group: "finance", description: "View withdrawal records." },
+    PermissionMeta { key: "withdrawal.manage", guard: "admin", label: "Manage Withdrawals", group: "finance", description: "Process, approve or reject withdrawal requests." },
+    PermissionMeta { key: "bank.read", guard: "admin", label: "Read Banks", group: "finance", description: "View bank list." },
+    PermissionMeta { key: "bank.manage", guard: "admin", label: "Manage Banks", group: "finance", description: "Create, update, delete banks." },
+    PermissionMeta { key: "crypto_network.read", guard: "admin", label: "Read Crypto Networks", group: "finance", description: "View crypto network list." },
+    PermissionMeta { key: "crypto_network.manage", guard: "admin", label: "Manage Crypto Networks", group: "finance", description: "Create, update, delete crypto networks." },
+    PermissionMeta { key: "company_bank_account.read", guard: "admin", label: "Read Company Bank Accounts", group: "finance", description: "View company bank accounts." },
+    PermissionMeta { key: "company_bank_account.manage", guard: "admin", label: "Manage Company Bank Accounts", group: "finance", description: "Create, update, delete company bank accounts." },
+    PermissionMeta { key: "company_crypto_account.read", guard: "admin", label: "Read Company Crypto Accounts", group: "finance", description: "View company crypto accounts." },
+    PermissionMeta { key: "company_crypto_account.manage", guard: "admin", label: "Manage Company Crypto Accounts", group: "finance", description: "Create, update, delete company crypto accounts." },
     PermissionMeta { key: "export", guard: "admin", label: "Export Data", group: "datatable", description: "Export datatable records as CSV." },
 ];
 
@@ -59,6 +116,25 @@ impl Permission {
             Self::ContentPageManage => "content_page.manage",
             Self::CountryRead => "country.read",
             Self::CountryManage => "country.manage",
+            Self::UserRead => "user.read",
+            Self::UserManage => "user.manage",
+            Self::UserHierarchy => "user.hierarchy",
+            Self::UserChangeIntroducer => "user.change_introducer",
+            Self::UserCreditRead => "user.credit_read",
+            Self::UserCreditManage => "user.credit_manage",
+            Self::AuditLogRead => "audit_log.read",
+            Self::DepositRead => "deposit.read",
+            Self::DepositManage => "deposit.manage",
+            Self::WithdrawalRead => "withdrawal.read",
+            Self::WithdrawalManage => "withdrawal.manage",
+            Self::BankRead => "bank.read",
+            Self::BankManage => "bank.manage",
+            Self::CryptoNetworkRead => "crypto_network.read",
+            Self::CryptoNetworkManage => "crypto_network.manage",
+            Self::CompanyBankAccountRead => "company_bank_account.read",
+            Self::CompanyBankAccountManage => "company_bank_account.manage",
+            Self::CompanyCryptoAccountRead => "company_crypto_account.read",
+            Self::CompanyCryptoAccountManage => "company_crypto_account.manage",
             Self::Export => "export",
         }
     }
@@ -71,6 +147,25 @@ impl Permission {
             "content_page.manage" => Some(Self::ContentPageManage),
             "country.read" => Some(Self::CountryRead),
             "country.manage" => Some(Self::CountryManage),
+            "user.read" => Some(Self::UserRead),
+            "user.manage" => Some(Self::UserManage),
+            "user.hierarchy" => Some(Self::UserHierarchy),
+            "user.change_introducer" => Some(Self::UserChangeIntroducer),
+            "user.credit_read" => Some(Self::UserCreditRead),
+            "user.credit_manage" => Some(Self::UserCreditManage),
+            "audit_log.read" => Some(Self::AuditLogRead),
+            "deposit.read" => Some(Self::DepositRead),
+            "deposit.manage" => Some(Self::DepositManage),
+            "withdrawal.read" => Some(Self::WithdrawalRead),
+            "withdrawal.manage" => Some(Self::WithdrawalManage),
+            "bank.read" => Some(Self::BankRead),
+            "bank.manage" => Some(Self::BankManage),
+            "crypto_network.read" => Some(Self::CryptoNetworkRead),
+            "crypto_network.manage" => Some(Self::CryptoNetworkManage),
+            "company_bank_account.read" => Some(Self::CompanyBankAccountRead),
+            "company_bank_account.manage" => Some(Self::CompanyBankAccountManage),
+            "company_crypto_account.read" => Some(Self::CompanyCryptoAccountRead),
+            "company_crypto_account.manage" => Some(Self::CompanyCryptoAccountManage),
             "export" => Some(Self::Export),
             _ => None,
         }
@@ -84,6 +179,25 @@ impl Permission {
             Self::ContentPageManage,
             Self::CountryRead,
             Self::CountryManage,
+            Self::UserRead,
+            Self::UserManage,
+            Self::UserHierarchy,
+            Self::UserChangeIntroducer,
+            Self::UserCreditRead,
+            Self::UserCreditManage,
+            Self::AuditLogRead,
+            Self::DepositRead,
+            Self::DepositManage,
+            Self::WithdrawalRead,
+            Self::WithdrawalManage,
+            Self::BankRead,
+            Self::BankManage,
+            Self::CryptoNetworkRead,
+            Self::CryptoNetworkManage,
+            Self::CompanyBankAccountRead,
+            Self::CompanyBankAccountManage,
+            Self::CompanyCryptoAccountRead,
+            Self::CompanyCryptoAccountManage,
             Self::Export,
         ]
     }
@@ -96,6 +210,25 @@ impl Permission {
             Self::ContentPageManage => "admin",
             Self::CountryRead => "admin",
             Self::CountryManage => "admin",
+            Self::UserRead => "admin",
+            Self::UserManage => "admin",
+            Self::UserHierarchy => "admin",
+            Self::UserChangeIntroducer => "admin",
+            Self::UserCreditRead => "admin",
+            Self::UserCreditManage => "admin",
+            Self::AuditLogRead => "admin",
+            Self::DepositRead => "admin",
+            Self::DepositManage => "admin",
+            Self::WithdrawalRead => "admin",
+            Self::WithdrawalManage => "admin",
+            Self::BankRead => "admin",
+            Self::BankManage => "admin",
+            Self::CryptoNetworkRead => "admin",
+            Self::CryptoNetworkManage => "admin",
+            Self::CompanyBankAccountRead => "admin",
+            Self::CompanyBankAccountManage => "admin",
+            Self::CompanyCryptoAccountRead => "admin",
+            Self::CompanyCryptoAccountManage => "admin",
             Self::Export => "admin",
         }
     }
@@ -108,7 +241,26 @@ impl Permission {
             Self::ContentPageManage => &PERMISSION_META[3],
             Self::CountryRead => &PERMISSION_META[4],
             Self::CountryManage => &PERMISSION_META[5],
-            Self::Export => &PERMISSION_META[6],
+            Self::UserRead => &PERMISSION_META[6],
+            Self::UserManage => &PERMISSION_META[7],
+            Self::UserHierarchy => &PERMISSION_META[8],
+            Self::UserChangeIntroducer => &PERMISSION_META[9],
+            Self::UserCreditRead => &PERMISSION_META[10],
+            Self::UserCreditManage => &PERMISSION_META[11],
+            Self::AuditLogRead => &PERMISSION_META[12],
+            Self::DepositRead => &PERMISSION_META[13],
+            Self::DepositManage => &PERMISSION_META[14],
+            Self::WithdrawalRead => &PERMISSION_META[15],
+            Self::WithdrawalManage => &PERMISSION_META[16],
+            Self::BankRead => &PERMISSION_META[17],
+            Self::BankManage => &PERMISSION_META[18],
+            Self::CryptoNetworkRead => &PERMISSION_META[19],
+            Self::CryptoNetworkManage => &PERMISSION_META[20],
+            Self::CompanyBankAccountRead => &PERMISSION_META[21],
+            Self::CompanyBankAccountManage => &PERMISSION_META[22],
+            Self::CompanyCryptoAccountRead => &PERMISSION_META[23],
+            Self::CompanyCryptoAccountManage => &PERMISSION_META[24],
+            Self::Export => &PERMISSION_META[25],
         }
     }
 
